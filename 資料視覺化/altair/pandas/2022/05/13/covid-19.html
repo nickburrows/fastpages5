@@ -1,0 +1,2070 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="twitter:card" content="summary_large_image" /><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>存取台灣 COVID-19 疫情數據並繪製疾管署趨勢圖表 | fastpages</title>
+<meta name="generator" content="Jekyll v4.1.1" />
+<meta property="og:title" content="存取台灣 COVID-19 疫情數據並繪製疾管署趨勢圖表" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="本文展示如何透過 Python 存取由衛福部疾管署公布、廣大鄉民整理的最新疫情數據並製作基本的趨勢圖表。如果這是你第一次知曉此專案，請由此開始閱讀。" />
+<meta property="og:description" content="本文展示如何透過 Python 存取由衛福部疾管署公布、廣大鄉民整理的最新疫情數據並製作基本的趨勢圖表。如果這是你第一次知曉此專案，請由此開始閱讀。" />
+<link rel="canonical" href="https://nickburrows.github.io/fastpages5/%E8%B3%87%E6%96%99%E8%A6%96%E8%A6%BA%E5%8C%96/altair/pandas/2022/05/13/covid-19.html" />
+<meta property="og:url" content="https://nickburrows.github.io/fastpages5/%E8%B3%87%E6%96%99%E8%A6%96%E8%A6%BA%E5%8C%96/altair/pandas/2022/05/13/covid-19.html" />
+<meta property="og:site_name" content="fastpages" />
+<meta property="og:image" content="https://nickburrows.github.io/fastpages5/images/cover/article/clement-souchet-fUvxHs5NC1o-unsplash.jpg" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2022-05-13T00:00:00-05:00" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:image" content="https://nickburrows.github.io/fastpages5/images/cover/article/clement-souchet-fUvxHs5NC1o-unsplash.jpg" />
+<meta property="twitter:title" content="存取台灣 COVID-19 疫情數據並繪製疾管署趨勢圖表" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2022-05-13T00:00:00-05:00","datePublished":"2022-05-13T00:00:00-05:00","description":"本文展示如何透過 Python 存取由衛福部疾管署公布、廣大鄉民整理的最新疫情數據並製作基本的趨勢圖表。如果這是你第一次知曉此專案，請由此開始閱讀。","headline":"存取台灣 COVID-19 疫情數據並繪製疾管署趨勢圖表","image":"https://nickburrows.github.io/fastpages5/images/cover/article/clement-souchet-fUvxHs5NC1o-unsplash.jpg","mainEntityOfPage":{"@type":"WebPage","@id":"https://nickburrows.github.io/fastpages5/%E8%B3%87%E6%96%99%E8%A6%96%E8%A6%BA%E5%8C%96/altair/pandas/2022/05/13/covid-19.html"},"url":"https://nickburrows.github.io/fastpages5/%E8%B3%87%E6%96%99%E8%A6%96%E8%A6%BA%E5%8C%96/altair/pandas/2022/05/13/covid-19.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/fastpages5/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://nickburrows.github.io/fastpages5/feed.xml" title="fastpages" /><link rel="shortcut icon" type="image/x-icon" href="/fastpages5/images/favicon.ico"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Primer/15.2.0/primer.css" integrity="sha512-xTz2ys4coGAOz8vuV1NcQBkgVmKhsSEtjbqyMJbBHRplFuvKIUo6xhLHpAyPt9mfR6twHJgn9OgVLuqOvjeBhg==" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous" />
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title") && (el.className != "emoji")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+</head>
+<body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/fastpages5/">fastpages</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/fastpages5/about/">About Me</a><a class="page-link" href="/fastpages5/search/">Search</a><a class="page-link" href="/fastpages5/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">存取台灣 COVID-19 疫情數據並繪製疾管署趨勢圖表</h1><p class="page-description">本文展示如何透過 Python 存取由衛福部疾管署公布、廣大鄉民整理的最新疫情數據並製作基本的趨勢圖表。如果這是你第一次知曉此專案，請由此開始閱讀。</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2022-05-13T00:00:00-05:00" itemprop="datePublished">
+        May 13, 2022
+      </time>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      5 min read
+    
+</span></p>
+
+    
+      <p class="category-tags"><i class="fas fa-tags category-tags-icon"></i></i> 
+      
+        <a class="category-tags-link" href="/fastpages5/categories/#資料視覺化">資料視覺化</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/fastpages5/categories/#altair">altair</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/fastpages5/categories/#pandas">pandas</a>
+        
+      
+      </p>
+    
+
+    
+      
+        <div class="pb-5 d-flex flex-justify-center">
+          <div class="px-2">
+
+    <a href="https://github.com/nickburrows/fastpages5/tree/master/_notebooks/2022-05-13-covid-19.ipynb" role="button" target="_blank">
+<img class="notebook-badge-image" src="/fastpages5/assets/badges/github.svg" alt="View On GitHub">
+    </a>
+</div>
+
+          <div class="px-2">
+    <a href="https://mybinder.org/v2/gh/nickburrows/fastpages5/master?filepath=_notebooks%2F2022-05-13-covid-19.ipynb" target="_blank">
+        <img class="notebook-badge-image" src="/fastpages5/assets/badges/binder.svg" alt="Open In Binder"/>
+    </a>
+</div>
+
+          <div class="px-2">
+    <a href="https://colab.research.google.com/github/nickburrows/fastpages5/blob/master/_notebooks/2022-05-13-covid-19.ipynb" target="_blank">
+        <img class="notebook-badge-image" src="/fastpages5/assets/badges/colab.svg" alt="Open In Colab"/>
+    </a>
+</div>
+          <div class="px-2">
+  <a href="https://deepnote.com/launch?url=https%3A%2F%2Fgithub.com%2Fnickburrows%2Ffastpages5%2Fblob%2Fmaster%2F_notebooks%2F2022-05-13-covid-19.ipynb" target="_blank">
+      <img class="notebook-badge-image" src="/fastpages5/assets/badges/deepnote.svg" alt="Launch in Deepnote"/>
+  </a>
+</div>
+
+        </div>
+      </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul id="toc" class="section-nav">
+<li class="toc-entry toc-h2"><a href="#使用-Pandas-存取試算表內容">使用 Pandas 存取試算表內容 </a></li>
+<li class="toc-entry toc-h2"><a href="#重現疾管署公開的最新疫情數據">重現疾管署公開的最新疫情數據 </a></li>
+<li class="toc-entry toc-h2"><a href="#使用-Altair-繪製疫情趨勢圖">使用 Altair 繪製疫情趨勢圖 </a></li>
+<li class="toc-entry toc-h2"><a href="#最大化公開數據的價值：現在輪到你了">最大化公開數據的價值：現在輪到你了 </a></li>
+</ul><!--
+#################################################
+### THIS FILE WAS AUTOGENERATED! DO NOT EDIT! ###
+#################################################
+# file to edit: _notebooks/2022-05-13-covid-19.ipynb
+-->
+
+<div class="container" id="notebook-container">
+        
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<blockquote>
+<p>quote:多數人透過實際聆聽音樂來了解其優美之處，但當他們被要求呈現統計數據時卻常常只秀出冷冰冰的音符，而不實際演奏這些音符所代表的音樂。|漢斯・羅斯林</p>
+</blockquote>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>我們在<a href="https://leemeng.tw/gapminder.html">《真確》：如何用 30 秒了解台灣發展與全球趨勢</a>時提過，一張設計良好的資訊圖表遠比一堆冷冰冰的統計數據更能為眾人提供價值。在這篇文章裡，你將了解如何透過幾行簡單的 <a href="https://www.python.org/">Python</a> 程式碼來取得與台灣相關的 COVID-19 數據，並製作與<a href="https://www.cdc.gov.tw/">衛福部疾管署</a>首頁相似的趨勢圖表。讀完本文你可以發揮自己的創意生成新的資訊圖表，進一步了解 COVID-19 疫情。</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<blockquote>
+<p>img:intro/taiwan-cnc-numbers.jpg|desc:大家都很熟悉的畫面：台灣 COVID-19 最新疫情趨勢|dark|url:<a href="https://www.cdc.gov.tw/%7Csource:%E8%A1%9B%E7%A6%8F%E9%83%A8%E7%96%BE%E7%AE%A1%E7%BD%B2%E9%A6%96%E9%A0%81">https://www.cdc.gov.tw/|source:衛福部疾管署首頁</a></p>
+</blockquote>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>這邊值得一提的是以上截圖並不反應最新疫情。事實上，圖中的實際數值也並不那麼重要。你只需稍微了解有哪些指標（確診數、送驗數等）以及兩張圖分別想要呈現的疫情趨勢即可。我們馬上就會透過 <a href="https://www.ptt.cc/bbs/nCoV2019/M.1585017075.A.3E7.html">LeafLu 與眾多 PTT 鄉民</a>辛勤為社會大眾整理的 <a href="https://docs.google.com/spreadsheets/d/1Kp5IC5IEI2ffaOSZY1daYoi2u50bjUHJW-IgfHoEq8o/edit#gid=0">Google 試算表</a>來取得疾管署公布的最新疫情結果。以下就是我們即將存取的試算表：</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<blockquote>
+<p>img:intro/ppt-taiwan-covid-sheet.jpg|desc:眾多鄉民在 Google 試算表上整理的疫情數據，感謝他們的辛勤付出|dark|url:<a href="https://docs.google.com/spreadsheets/d/1Kp5IC5IEI2ffaOSZY1daYoi2u50bjUHJW-IgfHoEq8o/edit#gid=0">https://docs.google.com/spreadsheets/d/1Kp5IC5IEI2ffaOSZY1daYoi2u50bjUHJW-IgfHoEq8o/edit#gid=0</a></p>
+</blockquote>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>這個試算表定期更新台灣所有的確診案例以及其他相關疫情資訊，十分強大。另外注意我們即將使用的是分流版本的試算表，以盡可能減少對主要試算表的存取要求。你當然也可以自行打開<a href="https://docs.google.com/spreadsheets/d/1Kp5IC5IEI2ffaOSZY1daYoi2u50bjUHJW-IgfHoEq8o/edit#gid=0">該試算表</a>並 Ctrl + C、Ctrl + V 複製自己想要的數據，但我們可以更聰明一點，用 Python 自動化這些步驟。</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="使用-Pandas-存取試算表內容">
+<a class="anchor" href="#%E4%BD%BF%E7%94%A8-Pandas-%E5%AD%98%E5%8F%96%E8%A9%A6%E7%AE%97%E8%A1%A8%E5%85%A7%E5%AE%B9" aria-hidden="true"><span class="octicon octicon-link"></span></a>使用 Pandas 存取試算表內容<a class="anchor-link" href="#%E4%BD%BF%E7%94%A8-Pandas-%E5%AD%98%E5%8F%96%E8%A9%A6%E7%AE%97%E8%A1%A8%E5%85%A7%E5%AE%B9"> </a>
+</h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<blockquote>
+<p>quote:<a href="https://pandas.pydata.org/" target="_blank">pandas</a> 建立在 Python 程式語言之上，是一個快速、強大且具備彈性的資料分析與數據處理工具。pandas 也是資料科學家不可不掌握的數據處理利器之一。</p>
+</blockquote>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>整個專案我們都將使用資料科學家們已經十分熟悉的 <a href="https://pandas.pydata.org/">pandas</a> 來處理疫情相關的數據。如果這是你第一次知曉 pandas 並打算快速且有系統地學習，稍後可以參考<a href="https://leemeng.tw/practical-pandas-tutorial-for-aspiring-data-scientists.html">資料科學家的 pandas 實戰手冊：掌握 40 個實用數據技巧</a>。不過要用 pandas 存取公開的 Google 試算表十分容易。比方說我們現在想要取得<a href="https://docs.google.com/spreadsheets/d/1Kp5IC5IEI2ffaOSZY1daYoi2u50bjUHJW-IgfHoEq8o/edit#gid=1173642744">台灣 COVID-19 的檢驗人數</a>：</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>  <span class="c1"># 用 pandas 的標準起手式</span>
+
+<span class="c1"># Google 試算表的基本 url pattern</span>
+<span class="n">GOOGLE_SHEET_URL</span> <span class="o">=</span> <span class="s2">"https://docs.google.com/spreadsheets/d/</span><span class="si">{}</span><span class="s2">/export?gid=</span><span class="si">{}</span><span class="s2">&amp;format=csv"</span>
+
+<span class="n">FILE_URL</span> <span class="o">=</span> <span class="s2">"https://od.cdc.gov.tw/eic/Day_Confirmation_Age_County_Gender_19CoV.csv"</span>
+
+<span class="c1"># 透過 `pd.read_csv` 函式直接透過 url 將 Google 試算表轉成 DataFrame 並做簡單數據前處理</span>
+<span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'確定病名'</span><span class="p">,</span><span class="s1">'個案研判日'</span><span class="p">,</span><span class="s1">'縣市'</span><span class="p">,</span><span class="s1">'鄉鎮'</span><span class="p">,</span><span class="s1">'性別'</span><span class="p">,</span><span class="s1">'是否為境外移入'</span><span class="p">,</span><span class="s1">'年齡層'</span><span class="p">,</span><span class="s1">'確定病例數'</span><span class="p">]</span>
+
+<span class="n">tests</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">FILE_URL</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">columns</span><span class="p">]</span>  <span class="c1"># 這邊我們為了畫面簡潔只選出需要使用的欄位</span>
+<span class="p">)</span>
+
+<span class="c1"># 補空值、將浮點數改為整數方便閱讀</span>
+<span class="n">tests</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="p">{</span><span class="n">col</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">tests</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">1</span><span class="p">:]},</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># for col in tests.columns[1:]:</span>
+<span class="c1">#     tests[col] = tests[col].astype(int)</span>
+
+<span class="c1"># 顯示最新幾天的檢驗數據</span>
+<span class="n">tests</span><span class="o">.</span><span class="n">tail</span><span class="p">()</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+
+  <div id="df-5e95725f-aea7-47cb-8c05-3069abe10dd7">
+    <div class="colab-df-container">
+      <div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>確定病名</th>
+      <th>個案研判日</th>
+      <th>縣市</th>
+      <th>鄉鎮</th>
+      <th>性別</th>
+      <th>是否為境外移入</th>
+      <th>年齡層</th>
+      <th>確定病例數</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>66022</th>
+      <td>嚴重特殊傳染性肺炎</td>
+      <td>2022/05/03</td>
+      <td>澎湖縣</td>
+      <td>馬公市</td>
+      <td>男</td>
+      <td>否</td>
+      <td>40-44</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>66023</th>
+      <td>嚴重特殊傳染性肺炎</td>
+      <td>2022/05/03</td>
+      <td>澎湖縣</td>
+      <td>馬公市</td>
+      <td>男</td>
+      <td>否</td>
+      <td>5-9</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>66024</th>
+      <td>嚴重特殊傳染性肺炎</td>
+      <td>2022/05/03</td>
+      <td>澎湖縣</td>
+      <td>馬公市</td>
+      <td>男</td>
+      <td>否</td>
+      <td>70+</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>66025</th>
+      <td>嚴重特殊傳染性肺炎</td>
+      <td>2022/05/03</td>
+      <td>澎湖縣</td>
+      <td>湖西鄉</td>
+      <td>女</td>
+      <td>否</td>
+      <td>30-34</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>66026</th>
+      <td>嚴重特殊傳染性肺炎</td>
+      <td>2022/05/03</td>
+      <td>澎湖縣</td>
+      <td>湖西鄉</td>
+      <td>女</td>
+      <td>否</td>
+      <td>35-39</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+      <button class="colab-df-convert" onclick="convertToInteractive('df-5e95725f-aea7-47cb-8c05-3069abe10dd7')" title="Convert this dataframe to an interactive table." style="display:none;">
+        
+  &lt;svg xmlns="http://www.w3.org/2000/svg" height="24px"viewBox="0 0 24 24"
+       width="24px"&gt;
+    <path d="M0 0h24v24H0V0z" fill="none"></path>
+    <path d="M18.56 5.44l.94 2.06.94-2.06 2.06-.94-2.06-.94-.94-2.06-.94 2.06-2.06.94zm-11 1L8.5 8.5l.94-2.06 2.06-.94-2.06-.94L8.5 2.5l-.94 2.06-2.06.94zm10 10l.94 2.06.94-2.06 2.06-.94-2.06-.94-.94-2.06-.94 2.06-2.06.94z"></path><path d="M17.41 7.96l-1.37-1.37c-.4-.4-.92-.59-1.43-.59-.52 0-1.04.2-1.43.59L10.3 9.45l-7.72 7.72c-.78.78-.78 2.05 0 2.83L4 21.41c.39.39.9.59 1.41.59.51 0 1.02-.2 1.41-.59l7.78-7.78 2.81-2.81c.8-.78.8-2.07 0-2.86zM5.41 20L4 18.59l7.72-7.72 1.47 1.35L5.41 20z"></path>
+  &lt;/svg&gt;
+      </button>
+      
+  <style>
+    .colab-df-container {
+      display:flex;
+      flex-wrap:wrap;
+      gap: 12px;
+    }
+
+    .colab-df-convert {
+      background-color: #E8F0FE;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: none;
+      fill: #1967D2;
+      height: 32px;
+      padding: 0 0 0 0;
+      width: 32px;
+    }
+
+    .colab-df-convert:hover {
+      background-color: #E2EBFA;
+      box-shadow: 0px 1px 2px rgba(60, 64, 67, 0.3), 0px 1px 3px 1px rgba(60, 64, 67, 0.15);
+      fill: #174EA6;
+    }
+
+    [theme=dark] .colab-df-convert {
+      background-color: #3B4455;
+      fill: #D2E3FC;
+    }
+
+    [theme=dark] .colab-df-convert:hover {
+      background-color: #434B5C;
+      box-shadow: 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+      filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.3));
+      fill: #FFFFFF;
+    }
+  </style>
+
+      <script>
+        const buttonEl =
+          document.querySelector('#df-5e95725f-aea7-47cb-8c05-3069abe10dd7 button.colab-df-convert');
+        buttonEl.style.display =
+          google.colab.kernel.accessAllowed ? 'block' : 'none';
+
+        async function convertToInteractive(key) {
+          const element = document.querySelector('#df-5e95725f-aea7-47cb-8c05-3069abe10dd7');
+          const dataTable =
+            await google.colab.kernel.invokeFunction('convertToInteractive',
+                                                     [key], {});
+          if (!dataTable) return;
+
+          const docLinkHtml = 'Like what you see? Visit the ' +
+            '<a target="_blank" href=https://colab.research.google.com/notebooks/data_table.ipynb>data table notebook</a>'
+            + ' to learn more about interactive tables.';
+          element.innerHTML = '';
+          dataTable['output_type'] = 'display_data';
+          await google.colab.output.renderOutput(dataTable, element);
+          const docLink = document.createElement('div');
+          docLink.innerHTML = docLinkHtml;
+          element.appendChild(docLink);
+        }
+      </script>
+    </div>
+  </div>
+  
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>  <span class="c1"># 用 pandas 的標準起手式</span>
+
+<span class="n">FILE_URL</span> <span class="o">=</span> <span class="s2">"https://od.cdc.gov.tw/eic/Day_Confirmation_Age_County_Gender_19CoV.csv"</span>
+
+<span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'個案研判日'</span><span class="p">,</span><span class="s1">'是否為境外移入'</span><span class="p">,</span><span class="s1">'確定病例數'</span><span class="p">]</span>
+
+<span class="n">tests</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">FILE_URL</span><span class="p">)</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">columns</span><span class="p">]</span>
+
+<span class="n">tests</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">"個案研判日"</span><span class="p">:</span> <span class="s2">"日期"</span><span class="p">,</span> <span class="s1">'是否為境外移入'</span><span class="p">:</span> <span class="s1">'境外'</span><span class="p">,</span> <span class="s1">'確定病例數'</span><span class="p">:</span> <span class="s1">'確診'</span><span class="p">},</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># 顯示最新幾天的檢驗數據</span>
+<span class="n">tests</span><span class="o">.</span><span class="n">tail</span><span class="p">()</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+
+  <div id="df-80486a75-fccb-42dd-8d5c-25f0c9b5bb7a">
+    <div class="colab-df-container">
+      <div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>日期</th>
+      <th>境外</th>
+      <th>確診</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>66022</th>
+      <td>2022/05/03</td>
+      <td>否</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>66023</th>
+      <td>2022/05/03</td>
+      <td>否</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>66024</th>
+      <td>2022/05/03</td>
+      <td>否</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>66025</th>
+      <td>2022/05/03</td>
+      <td>否</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>66026</th>
+      <td>2022/05/03</td>
+      <td>否</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+      <button class="colab-df-convert" onclick="convertToInteractive('df-80486a75-fccb-42dd-8d5c-25f0c9b5bb7a')" title="Convert this dataframe to an interactive table." style="display:none;">
+        
+  &lt;svg xmlns="http://www.w3.org/2000/svg" height="24px"viewBox="0 0 24 24"
+       width="24px"&gt;
+    <path d="M0 0h24v24H0V0z" fill="none"></path>
+    <path d="M18.56 5.44l.94 2.06.94-2.06 2.06-.94-2.06-.94-.94-2.06-.94 2.06-2.06.94zm-11 1L8.5 8.5l.94-2.06 2.06-.94-2.06-.94L8.5 2.5l-.94 2.06-2.06.94zm10 10l.94 2.06.94-2.06 2.06-.94-2.06-.94-.94-2.06-.94 2.06-2.06.94z"></path><path d="M17.41 7.96l-1.37-1.37c-.4-.4-.92-.59-1.43-.59-.52 0-1.04.2-1.43.59L10.3 9.45l-7.72 7.72c-.78.78-.78 2.05 0 2.83L4 21.41c.39.39.9.59 1.41.59.51 0 1.02-.2 1.41-.59l7.78-7.78 2.81-2.81c.8-.78.8-2.07 0-2.86zM5.41 20L4 18.59l7.72-7.72 1.47 1.35L5.41 20z"></path>
+  &lt;/svg&gt;
+      </button>
+      
+  <style>
+    .colab-df-container {
+      display:flex;
+      flex-wrap:wrap;
+      gap: 12px;
+    }
+
+    .colab-df-convert {
+      background-color: #E8F0FE;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: none;
+      fill: #1967D2;
+      height: 32px;
+      padding: 0 0 0 0;
+      width: 32px;
+    }
+
+    .colab-df-convert:hover {
+      background-color: #E2EBFA;
+      box-shadow: 0px 1px 2px rgba(60, 64, 67, 0.3), 0px 1px 3px 1px rgba(60, 64, 67, 0.15);
+      fill: #174EA6;
+    }
+
+    [theme=dark] .colab-df-convert {
+      background-color: #3B4455;
+      fill: #D2E3FC;
+    }
+
+    [theme=dark] .colab-df-convert:hover {
+      background-color: #434B5C;
+      box-shadow: 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+      filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.3));
+      fill: #FFFFFF;
+    }
+  </style>
+
+      <script>
+        const buttonEl =
+          document.querySelector('#df-80486a75-fccb-42dd-8d5c-25f0c9b5bb7a button.colab-df-convert');
+        buttonEl.style.display =
+          google.colab.kernel.accessAllowed ? 'block' : 'none';
+
+        async function convertToInteractive(key) {
+          const element = document.querySelector('#df-80486a75-fccb-42dd-8d5c-25f0c9b5bb7a');
+          const dataTable =
+            await google.colab.kernel.invokeFunction('convertToInteractive',
+                                                     [key], {});
+          if (!dataTable) return;
+
+          const docLinkHtml = 'Like what you see? Visit the ' +
+            '<a target="_blank" href=https://colab.research.google.com/notebooks/data_table.ipynb>data table notebook</a>'
+            + ' to learn more about interactive tables.';
+          element.innerHTML = '';
+          dataTable['output_type'] = 'display_data';
+          await google.colab.output.renderOutput(dataTable, element);
+          const docLink = document.createElement('div');
+          docLink.innerHTML = docLinkHtml;
+          element.appendChild(docLink);
+        }
+      </script>
+    </div>
+  </div>
+  
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>沒錯，以往只能在觀測網站上看得到卻摸不到的疫情數據現在已經完全供你自由探索了。這一切都要感謝疾管署與廣大鄉民的辛勤更新以及 pandas 的直覺操作。值得一提的是 pandas 只能存取公開試算表，因此如果你想要存取的是私人試算表，可以考慮使用 <a href="https://pygsheets.readthedocs.io/en/stable/">pygsheets</a>。</p>
+<p>端看你存取<a href="https://docs.google.com/spreadsheets/d/1Kp5IC5IEI2ffaOSZY1daYoi2u50bjUHJW-IgfHoEq8o/edit#gid=1173642744">檢驗人數</a>這個工作表的時間點，最新一天的數據有可能還沒有被寫上日期。在匯總數據之前讓我們透過時間處理函式庫 <a href="https://pendulum.eustace.io/">Pendulum</a> 來為最後一列（row）加上今日日期（如果有必要的話），並把所有日期更換為通用格式：</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">pendulum</span>
+
+<span class="c1"># 給當前一天累計的確診數加上最新日期(如果還沒加的話)</span>
+<span class="c1"># 如果你現在不了解這段程式碼也沒有關係，只要知道輸出的 DataFrame 的長相就可以了</span>
+<span class="n">na</span> <span class="o">=</span> <span class="p">(</span><span class="n">tests</span><span class="p">[</span><span class="s1">'日期'</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">())</span>
+<span class="n">prev</span> <span class="o">=</span> <span class="n">tests</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span><span class="n">na</span><span class="p">]</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="s1">'日期'</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">prev_dt</span> <span class="o">=</span> <span class="n">pendulum</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">prev</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)])</span>
+<span class="n">latest_dt</span> <span class="o">=</span> <span class="n">prev_dt</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">tests</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">na</span><span class="p">,</span> <span class="p">[</span><span class="s1">'日期'</span><span class="p">]]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">latest_dt</span><span class="o">.</span><span class="n">month</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">latest_dt</span><span class="o">.</span><span class="n">day</span><span class="si">}</span><span class="s2">"</span>
+
+<span class="c1"># 將本來的日期字串改為更為通用的 `年年年年-月月-日日` 格式</span>
+<span class="c1"># 很多繪圖函式庫能夠自動將這種格式的字串解析成對應的日期物件</span>
+<span class="c1"># tests['日期'] = tests['日期'].str.split('/')\</span>
+<span class="c1">#     .apply(lambda x: pendulum.date(2022, int(x[0]), int(x[1])).format("YYYY-MM-DD"))</span>
+
+<span class="c1"># 我們這邊用 pandas 實戰手冊提過的 df.style 來強調修改後的日期欄位</span>
+<span class="p">(</span><span class="n">tests</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">style</span>
+    <span class="o">.</span><span class="n">applymap</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">'background-color: #075985'</span><span class="p">,</span> 
+              <span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">'日期'</span><span class="p">]))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<style type="text/css">
+#T_81ce5_row0_col0, #T_81ce5_row1_col0, #T_81ce5_row2_col0, #T_81ce5_row3_col0, #T_81ce5_row4_col0 {
+  background-color: #075985;
+}
+</style>
+<table id="T_81ce5_" class="dataframe">
+  <thead>
+    <tr>
+      <th class="blank level0"> </th>
+      <th class="col_heading level0 col0">日期</th>
+      <th class="col_heading level0 col1">境外</th>
+      <th class="col_heading level0 col2">確診</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_81ce5_level0_row0" class="row_heading level0 row0">66022</th>
+      <td id="T_81ce5_row0_col0" class="data row0 col0">2022/05/03</td>
+      <td id="T_81ce5_row0_col1" class="data row0 col1">否</td>
+      <td id="T_81ce5_row0_col2" class="data row0 col2">1</td>
+    </tr>
+    <tr>
+      <th id="T_81ce5_level0_row1" class="row_heading level0 row1">66023</th>
+      <td id="T_81ce5_row1_col0" class="data row1 col0">2022/05/03</td>
+      <td id="T_81ce5_row1_col1" class="data row1 col1">否</td>
+      <td id="T_81ce5_row1_col2" class="data row1 col2">1</td>
+    </tr>
+    <tr>
+      <th id="T_81ce5_level0_row2" class="row_heading level0 row2">66024</th>
+      <td id="T_81ce5_row2_col0" class="data row2 col0">2022/05/03</td>
+      <td id="T_81ce5_row2_col1" class="data row2 col1">否</td>
+      <td id="T_81ce5_row2_col2" class="data row2 col2">1</td>
+    </tr>
+    <tr>
+      <th id="T_81ce5_level0_row3" class="row_heading level0 row3">66025</th>
+      <td id="T_81ce5_row3_col0" class="data row3 col0">2022/05/03</td>
+      <td id="T_81ce5_row3_col1" class="data row3 col1">否</td>
+      <td id="T_81ce5_row3_col2" class="data row3 col2">1</td>
+    </tr>
+    <tr>
+      <th id="T_81ce5_level0_row4" class="row_heading level0 row4">66026</th>
+      <td id="T_81ce5_row4_col0" class="data row4 col0">2022/05/03</td>
+      <td id="T_81ce5_row4_col1" class="data row4 col1">否</td>
+      <td id="T_81ce5_row4_col2" class="data row4 col2">1</td>
+    </tr>
+  </tbody>
+</table>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>你很快就會看到以這種格式儲存日期資訊的方便之處。現在讓我們透過這個簡單表格來重現疾管署首頁展示的圖表。</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="重現疾管署公開的最新疫情數據">
+<a class="anchor" href="#%E9%87%8D%E7%8F%BE%E7%96%BE%E7%AE%A1%E7%BD%B2%E5%85%AC%E9%96%8B%E7%9A%84%E6%9C%80%E6%96%B0%E7%96%AB%E6%83%85%E6%95%B8%E6%93%9A" aria-hidden="true"><span class="octicon octicon-link"></span></a>重現疾管署公開的最新疫情數據<a class="anchor-link" href="#%E9%87%8D%E7%8F%BE%E7%96%BE%E7%AE%A1%E7%BD%B2%E5%85%AC%E9%96%8B%E7%9A%84%E6%9C%80%E6%96%B0%E7%96%AB%E6%83%85%E6%95%B8%E6%93%9A"> </a>
+</h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>讓我們再次回顧一下疾管署所公布的 COVID-19 疫情圖表：</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<blockquote>
+<p>img:intro/taiwan-cnc-numbers.jpg|desc:衛福部疾管署公開的疫情數據|dark</p>
+</blockquote>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>這邊我們簡單重現第一列「國內檢驗總計」裡頭的兩個指標：送驗以及確診。</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+    <span class="s1">'確診'</span><span class="p">:</span> <span class="p">[</span><span class="n">tests</span><span class="p">[</span><span class="s1">'確診'</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()],</span>
+    <span class="s1">'境外'</span><span class="p">:</span> <span class="p">[(</span><span class="n">tests</span><span class="p">[</span><span class="s1">'境外'</span><span class="p">]</span><span class="o">==</span><span class="s1">'是'</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()],</span>    
+<span class="p">})</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+
+  <div id="df-7d9d8fb1-ac38-4682-bac4-15c8281e15ea">
+    <div class="colab-df-container">
+      <div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>確診</th>
+      <th>境外</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>202402</td>
+      <td>4379</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+      <button class="colab-df-convert" onclick="convertToInteractive('df-7d9d8fb1-ac38-4682-bac4-15c8281e15ea')" title="Convert this dataframe to an interactive table." style="display:none;">
+        
+  &lt;svg xmlns="http://www.w3.org/2000/svg" height="24px"viewBox="0 0 24 24"
+       width="24px"&gt;
+    <path d="M0 0h24v24H0V0z" fill="none"></path>
+    <path d="M18.56 5.44l.94 2.06.94-2.06 2.06-.94-2.06-.94-.94-2.06-.94 2.06-2.06.94zm-11 1L8.5 8.5l.94-2.06 2.06-.94-2.06-.94L8.5 2.5l-.94 2.06-2.06.94zm10 10l.94 2.06.94-2.06 2.06-.94-2.06-.94-.94-2.06-.94 2.06-2.06.94z"></path><path d="M17.41 7.96l-1.37-1.37c-.4-.4-.92-.59-1.43-.59-.52 0-1.04.2-1.43.59L10.3 9.45l-7.72 7.72c-.78.78-.78 2.05 0 2.83L4 21.41c.39.39.9.59 1.41.59.51 0 1.02-.2 1.41-.59l7.78-7.78 2.81-2.81c.8-.78.8-2.07 0-2.86zM5.41 20L4 18.59l7.72-7.72 1.47 1.35L5.41 20z"></path>
+  &lt;/svg&gt;
+      </button>
+      
+  <style>
+    .colab-df-container {
+      display:flex;
+      flex-wrap:wrap;
+      gap: 12px;
+    }
+
+    .colab-df-convert {
+      background-color: #E8F0FE;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: none;
+      fill: #1967D2;
+      height: 32px;
+      padding: 0 0 0 0;
+      width: 32px;
+    }
+
+    .colab-df-convert:hover {
+      background-color: #E2EBFA;
+      box-shadow: 0px 1px 2px rgba(60, 64, 67, 0.3), 0px 1px 3px 1px rgba(60, 64, 67, 0.15);
+      fill: #174EA6;
+    }
+
+    [theme=dark] .colab-df-convert {
+      background-color: #3B4455;
+      fill: #D2E3FC;
+    }
+
+    [theme=dark] .colab-df-convert:hover {
+      background-color: #434B5C;
+      box-shadow: 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+      filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.3));
+      fill: #FFFFFF;
+    }
+  </style>
+
+      <script>
+        const buttonEl =
+          document.querySelector('#df-7d9d8fb1-ac38-4682-bac4-15c8281e15ea button.colab-df-convert');
+        buttonEl.style.display =
+          google.colab.kernel.accessAllowed ? 'block' : 'none';
+
+        async function convertToInteractive(key) {
+          const element = document.querySelector('#df-7d9d8fb1-ac38-4682-bac4-15c8281e15ea');
+          const dataTable =
+            await google.colab.kernel.invokeFunction('convertToInteractive',
+                                                     [key], {});
+          if (!dataTable) return;
+
+          const docLinkHtml = 'Like what you see? Visit the ' +
+            '<a target="_blank" href=https://colab.research.google.com/notebooks/data_table.ipynb>data table notebook</a>'
+            + ' to learn more about interactive tables.';
+          element.innerHTML = '';
+          dataTable['output_type'] = 'display_data';
+          await google.colab.output.renderOutput(dataTable, element);
+          const docLink = document.createElement('div');
+          docLink.innerHTML = docLinkHtml;
+          element.appendChild(docLink);
+        }
+      </script>
+    </div>
+  </div>
+  
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>沒什麼魔法。多虧了鄉民們的努力，基本上你能輕鬆計算出跟疾管署大致相同的結果。以我們的使用案例而言（簡單資料視覺化、查看整體趨勢等），小誤差並不會造成什麼不良影響。不過如果你要非常精準的數字，我還是建議你查看<a href="https://www.cdc.gov.tw/">疾管署首頁</a>。這邊的重點是你現在已經有能力取得足夠精準、即時的疫情數據並進行更多疫情分析了。</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>我們當然也能自行算出「昨日新增」的相關數據：</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">yesterday_dt</span> <span class="o">=</span> <span class="n">pendulum</span><span class="o">.</span><span class="n">yesterday</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="s2">"Asia/Taipei"</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"YYYY/MM/DD"</span><span class="p">)</span>
+
+<span class="c1"># tests[(tests['日期'] == yesterday_dt)]</span>
+
+<span class="c1"># tests.loc[tests['日期'] == yesterday_dt]</span>
+<span class="c1"># tests = tests[(tests['日期'] == yesterday_dt) &amp; (tests['境外'] == '是')]</span>
+<span class="c1"># tests = tests[tests['日期'] == yesterday_dt]</span>
+
+<span class="c1"># cols = ['確診', '境外']</span>
+
+<span class="c1"># tests = tests[tests[cols].sum(axis=1) &gt; 0]</span>
+
+<span class="c1"># print("\nDataframe after filtering\n")</span>
+<span class="c1"># print(tests)</span>
+
+<span class="n">tests</span><span class="p">[</span><span class="n">tests</span><span class="p">[</span><span class="s1">'日期'</span><span class="p">]</span> <span class="o">==</span> <span class="n">yesterday_dt</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="p">[</span><span class="s1">'日期'</span><span class="p">,</span> <span class="s1">'確診'</span><span class="p">,</span> <span class="s1">'境外'</span><span class="p">]]</span>
+
+<span class="n">my_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+    <span class="s1">'確診'</span><span class="p">:</span> <span class="p">[</span><span class="n">tests</span><span class="p">[</span><span class="s1">'確診'</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()],</span>
+    <span class="s1">'境外'</span><span class="p">:</span> <span class="p">[(</span><span class="n">tests</span><span class="p">[</span><span class="s1">'境外'</span><span class="p">]</span><span class="o">==</span><span class="s1">'是'</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()],</span>    
+<span class="p">})</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"日期:"</span><span class="p">,</span> <span class="n">yesterday_dt</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_df</span><span class="p">,</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>日期: 2022/05/03
+   確診  境外
+0  67  23 
+
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>如同本文開頭所述，將疫情總結為<strong>一個統計數字</strong>固然強大，但當你想要暸解<strong>疫情趨勢</strong>時．僅僅秀出一個數字是不會有任何幫助的。這也是為何疾管署在確診人數下方還描繪了每日的確診人數變化，就是為了讓大眾能在掌握最新狀況的同時也能夠了解整體趨勢變化。</p>
+<p>在下一節，我將展示你可以如何用 Python 來描繪相似的趨勢圖表。</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="使用-Altair-繪製疫情趨勢圖">
+<a class="anchor" href="#%E4%BD%BF%E7%94%A8-Altair-%E7%B9%AA%E8%A3%BD%E7%96%AB%E6%83%85%E8%B6%A8%E5%8B%A2%E5%9C%96" aria-hidden="true"><span class="octicon octicon-link"></span></a>使用 Altair 繪製疫情趨勢圖<a class="anchor-link" href="#%E4%BD%BF%E7%94%A8-Altair-%E7%B9%AA%E8%A3%BD%E7%96%AB%E6%83%85%E8%B6%A8%E5%8B%A2%E5%9C%96"> </a>
+</h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<blockquote>
+<p>quote:<a href="https://altair-viz.github.io/index.html" target="_blank">Altair</a> 是一個建立在 <a href="http://vega.github.io/vega" target="_blank">Vega</a> 與 <a href="http://vega.github.io/vega-lite" target="_blank">Vega-Lite</a> 之上，可以透過 Python 操作的宣告型統計視覺化函式庫（declarative statistical visualization library）。</p>
+</blockquote>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>依照使用情境以及當下心情（？），一般我會用不同的 Python 函式庫來視覺化手中數據，比方說大家耳熟能詳的 <a href="https://matplotlib.org/">Matplotlib</a>、<a href="https://seaborn.pydata.org/">Seaborn</a> 或是強調互動性的 <a href="https://plotly.com/python/">Plotly</a>。我也曾介紹過<a href="https://leemeng.tw/chartify-a-simple-yet-powerful-python-data-visualization-tool-which-boost-your-productivity-as-a-data-scientist.html">由 Spotify 開源，跟 Altair 一樣用宣告型語法繪圖的 Chartify</a>。但如果現在要我向你推薦<strong>一個</strong> Python 函式庫的話，我會說：「去學學 <a href="https://altair-viz.github.io/index.html">Altair</a> 吧！」</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<blockquote>
+<p>img:intro/altair_official_page.jpg|desc:Altair 允許我們透過 Python 實現宣告型資料視覺化|url:<a href="https://altair-viz.github.io/index.html%7Csource:Altair">https://altair-viz.github.io/index.html|source:Altair</a> 官方說明文件|dark
+<a href="https://altair-viz.github.io/index.html">Altair 官方說明文件</a></p>
+</blockquote>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Altair 有幾個我認為值得特別列出來的優點：</p>
+<ul>
+<li>宣告型語法易上手、直覺，客製化能力強</li>
+<li>使用心法符合我們之前討論過的<a href="https://leemeng.tw/data-visualization-from-matplotlib-to-ggplot2.html">圖像分層文法</a>
+</li>
+<li>預設樣式優美，不像 Matplotlib 得自己修東修西</li>
+<li>具備跟 R 語言的 ggplot2 一樣強大的 facet 功能</li>
+<li>能輕易加入互動機制，且寫法比 Plotly 來得 Pythonic</li>
+</ul>
+<p>在 COVID-19 的系列文章裡，我會展示各種你可以透過 Altair 來輕鬆繪製的美麗圖表。事不宜遲，讓我們再次將目光放到疾管署右側的監測趨勢圖上。該圖將每天的送驗次數<a href="https://www.cdc.gov.tw/Category/ListContent/EmXemht4IT-IRAPrAnyG9A?uaid=hlaLHKBP91j9VUy0kc2f_A">依照通報來源分為三種類別</a>：</p>
+<ul>
+<li>居家檢疫送驗</li>
+<li>擴大監測送驗</li>
+<li>法定傳染病通報</li>
+</ul>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<blockquote>
+<p>img:intro/taiwan-cnc-numbers.jpg|desc:現在請先關注右圖：依據通報來源的每日送驗次數|dark</p>
+</blockquote>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>要自己生成這個趨勢圖並不難，因為我們手上已經有各通報來源的每日送驗數目：</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<details class="description">
+      <summary class="btn btn-sm" data-open="Hide Code" data-close="Show Code"></summary>
+        <p></p>
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># 用來強調接著會使用的欄位的樣式函式，讀者不需細讀這段程式碼</span>
+<span class="k">def</span> <span class="nf">highlight_column</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"rgb(153, 255, 51)"</span><span class="p">):</span>
+    <span class="n">attr</span> <span class="o">=</span> <span class="s1">'background-color: </span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">attr</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
+
+<span class="p">(</span><span class="n">tests</span><span class="o">.</span><span class="n">tail</span><span class="p">()</span><span class="o">.</span><span class="n">style</span>
+ <span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">highlight_column</span><span class="p">,</span> 
+        <span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">"居檢送驗"</span><span class="p">,</span> <span class="s2">"武肺通報"</span><span class="p">,</span> <span class="s2">"擴大監測"</span><span class="p">],</span> 
+        <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+    </details>
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<style type="text/css">
+    #T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row0_col3 {
+            background-color:  rgb(153, 255, 51);
+        }    #T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row0_col5 {
+            background-color:  rgb(153, 255, 51);
+        }    #T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row0_col7 {
+            background-color:  rgb(153, 255, 51);
+        }    #T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row1_col3 {
+            background-color:  rgb(153, 255, 51);
+        }    #T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row1_col5 {
+            background-color:  rgb(153, 255, 51);
+        }    #T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row1_col7 {
+            background-color:  rgb(153, 255, 51);
+        }    #T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row2_col3 {
+            background-color:  rgb(153, 255, 51);
+        }    #T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row2_col5 {
+            background-color:  rgb(153, 255, 51);
+        }    #T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row2_col7 {
+            background-color:  rgb(153, 255, 51);
+        }    #T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row3_col3 {
+            background-color:  rgb(153, 255, 51);
+        }    #T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row3_col5 {
+            background-color:  rgb(153, 255, 51);
+        }    #T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row3_col7 {
+            background-color:  rgb(153, 255, 51);
+        }    #T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row4_col3 {
+            background-color:  rgb(153, 255, 51);
+        }    #T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row4_col5 {
+            background-color:  rgb(153, 255, 51);
+        }    #T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row4_col7 {
+            background-color:  rgb(153, 255, 51);
+        }</style>
+<table id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0">
+<thead>    <tr>        <th class="blank level0"></th>        <th class="col_heading level0 col0">日期</th>        <th class="col_heading level0 col1">檢驗人數</th>        <th class="col_heading level0 col2">確診人數</th>        <th class="col_heading level0 col3">居檢送驗</th>        <th class="col_heading level0 col4">居檢送驗累計</th>        <th class="col_heading level0 col5">武肺通報</th>        <th class="col_heading level0 col6">武肺通報累計</th>        <th class="col_heading level0 col7">擴大監測</th>        <th class="col_heading level0 col8">擴大監測累計</th>    </tr>
+</thead>
+<tbody>
+                <tr>
+                        <th id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0level0_row0" class="row_heading level0 row0">101</th>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row0_col0" class="data row0 col0">2020-04-26</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row0_col1" class="data row0 col1">495</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row0_col2" class="data row0 col2">0</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row0_col3" class="data row0 col3">0</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row0_col4" class="data row0 col4">1707</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row0_col5" class="data row0 col5">71</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row0_col6" class="data row0 col6">13957</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row0_col7" class="data row0 col7">424</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row0_col8" class="data row0 col8">45259</td>
+            </tr>
+            <tr>
+                        <th id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0level0_row1" class="row_heading level0 row1">102</th>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row1_col0" class="data row1 col0">2020-04-27</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row1_col1" class="data row1 col1">742</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row1_col2" class="data row1 col2">0</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row1_col3" class="data row1 col3">0</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row1_col4" class="data row1 col4">1707</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row1_col5" class="data row1 col5">76</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row1_col6" class="data row1 col6">14033</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row1_col7" class="data row1 col7">666</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row1_col8" class="data row1 col8">45925</td>
+            </tr>
+            <tr>
+                        <th id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0level0_row2" class="row_heading level0 row2">103</th>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row2_col0" class="data row2 col0">2020-04-28</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row2_col1" class="data row2 col1">694</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row2_col2" class="data row2 col2">0</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row2_col3" class="data row2 col3">0</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row2_col4" class="data row2 col4">1707</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row2_col5" class="data row2 col5">98</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row2_col6" class="data row2 col6">14131</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row2_col7" class="data row2 col7">596</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row2_col8" class="data row2 col8">46521</td>
+            </tr>
+            <tr>
+                        <th id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0level0_row3" class="row_heading level0 row3">104</th>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row3_col0" class="data row3 col0">2020-04-29</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row3_col1" class="data row3 col1">486</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row3_col2" class="data row3 col2">0</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row3_col3" class="data row3 col3">0</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row3_col4" class="data row3 col4">1707</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row3_col5" class="data row3 col5">73</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row3_col6" class="data row3 col6">14204</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row3_col7" class="data row3 col7">413</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row3_col8" class="data row3 col8">46934</td>
+            </tr>
+            <tr>
+                        <th id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0level0_row4" class="row_heading level0 row4">105</th>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row4_col0" class="data row4 col0">2020-04-30</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row4_col1" class="data row4 col1">0</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row4_col2" class="data row4 col2">0</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row4_col3" class="data row4 col3">0</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row4_col4" class="data row4 col4">0</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row4_col5" class="data row4 col5">0</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row4_col6" class="data row4 col6">0</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row4_col7" class="data row4 col7">0</td>
+                        <td id="T_edfcfcb3_8aa8_11ea_a1ba_000d3a0e1bc0row4_col8" class="data row4 col8">0</td>
+            </tr>
+    </tbody>
+</table>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>在使用 Altair 畫圖前我們得將數據轉成 <a href="https://tomaugspurger.github.io/modern-5-tidy.html">tidy 格式</a>，就跟<a href="https://leemeng.tw/chartify-a-simple-yet-powerful-python-data-visualization-tool-which-boost-your-productivity-as-a-data-scientist.html#%E7%AF%84%E4%BE%8B%E8%B3%87%E6%96%99%E5%8F%8A-Tidy-%E6%A0%BC%E5%BC%8F">我們之前使用 Chartify 一樣</a>。tidy 數據具有以下 2 特性：</p>
+<ul>
+<li>1 變數只存在 1 欄裡頭（1 variable in a column）</li>
+<li>1 列代表 1 個觀測結果（1 observation in a row）</li>
+</ul>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>這邊我們關注的變數是一個有三種可能值的「通報來源」。一般會利用 pandas 的 <code>melt</code> 函式來產生 tidy 數據：</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">tests</span>
+    <span class="o">.</span><span class="n">rename</span><span class="p">({</span>  <span class="c1"># 用跟疾管署一致的 naming convention</span>
+        <span class="s1">'擴大監測'</span><span class="p">:</span> <span class="s1">'擴大監測送驗'</span><span class="p">,</span>
+        <span class="s1">'居檢送驗'</span><span class="p">:</span> <span class="s1">'居家檢驗送驗'</span><span class="p">,</span>
+        <span class="s1">'武肺通報'</span><span class="p">:</span> <span class="s1">'法定傳染病通報'</span><span class="p">,</span>
+    <span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># 這邊的關鍵是使用 `melt` 來建立 `通報來源` 變數</span>
+    <span class="o">.</span><span class="n">melt</span><span class="p">(</span><span class="s1">'日期'</span><span class="p">,</span> <span class="p">[</span><span class="s1">'擴大監測送驗'</span><span class="p">,</span> <span class="s1">'居家檢驗送驗'</span><span class="p">,</span> <span class="s1">'法定傳染病通報'</span><span class="p">],</span> 
+          <span class="n">var_name</span><span class="o">=</span><span class="s1">'通報來源'</span><span class="p">,</span> <span class="n">value_name</span><span class="o">=</span><span class="s2">"通報數"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">data</span><span class="o">.</span><span class="n">tail</span><span class="p">()</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>日期</th>
+      <th>通報來源</th>
+      <th>通報數</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>313</th>
+      <td>2020-04-26</td>
+      <td>法定傳染病通報</td>
+      <td>71</td>
+    </tr>
+    <tr>
+      <th>314</th>
+      <td>2020-04-27</td>
+      <td>法定傳染病通報</td>
+      <td>76</td>
+    </tr>
+    <tr>
+      <th>315</th>
+      <td>2020-04-28</td>
+      <td>法定傳染病通報</td>
+      <td>98</td>
+    </tr>
+    <tr>
+      <th>316</th>
+      <td>2020-04-29</td>
+      <td>法定傳染病通報</td>
+      <td>73</td>
+    </tr>
+    <tr>
+      <th>317</th>
+      <td>2020-04-30</td>
+      <td>法定傳染病通報</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>在 <code>data</code> 裡頭，每一列都代表著某個通報來源在某一天的通報數。有了 tidy 格式的 DataFrame 後，要用 Altair 繪製 COVID-19 的每日監測趨勢就變得十分容易了。我們只需<a href="https://leemeng.tw/data-visualization-from-matplotlib-to-ggplot2.html#%E6%AD%A3%E5%BC%8F%E5%AE%9A%E7%BE%A9">將數據中的變數對應到想要呈現的視覺變數</a>上就可以了：</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">altair</span> <span class="k">as</span> <span class="nn">alt</span>  <span class="c1"># 使用 altair 的標準起手式</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">renderers</span><span class="o">.</span><span class="n">set_embed_options</span><span class="p">(</span><span class="n">actions</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># 隱藏下載圖片的按鈕以節省空間</span>
+
+<span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">(</span>  <span class="c1"># 繪製柱狀圖</span>
+<span class="c1"># 將數據變數編碼（encode）到視覺變數上</span>
+<span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>  
+    <span class="n">x</span><span class="o">=</span><span class="s2">"日期:T"</span><span class="p">,</span>  <span class="c1"># 將日期對應到 x 軸上</span>
+    <span class="n">y</span><span class="o">=</span><span class="s2">"通報數:Q"</span><span class="p">,</span>  <span class="c1"># 將通報數對應到 y 軸上</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">"通報來源:N"</span>  <span class="c1"># 將通報來源對應到顏色</span>
+<span class="c1"># 設置整個圖的屬性</span>
+<span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>  
+    <span class="n">width</span><span class="o">=</span><span class="mi">700</span>  <span class="c1"># 圖表寬度</span>
+<span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+
+<div id="altair-viz-e54a984b44ec4c78b73b264ef25fc15e"></div>
+<script type="text/javascript">
+  (function(spec, embedOpt){
+    let outputDiv = document.currentScript.previousElementSibling;
+    if (outputDiv.id !== "altair-viz-e54a984b44ec4c78b73b264ef25fc15e") {
+      outputDiv = document.getElementById("altair-viz-e54a984b44ec4c78b73b264ef25fc15e");
+    }
+    const paths = {
+      "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
+      "vega-lib": "https://cdn.jsdelivr.net/npm//vega-lib?noext",
+      "vega-lite": "https://cdn.jsdelivr.net/npm//vega-lite@4.8.1?noext",
+      "vega-embed": "https://cdn.jsdelivr.net/npm//vega-embed@6?noext",
+    };
+
+    function loadScript(lib) {
+      return new Promise(function(resolve, reject) {
+        var s = document.createElement('script');
+        s.src = paths[lib];
+        s.async = true;
+        s.onload = () => resolve(paths[lib]);
+        s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
+        document.getElementsByTagName("head")[0].appendChild(s);
+      });
+    }
+
+    function showError(err) {
+      outputDiv.innerHTML = `<div class="error" style="color:red;">${err}</div>`;
+      throw err;
+    }
+
+    function displayChart(vegaEmbed) {
+      vegaEmbed(outputDiv, spec, embedOpt)
+        .catch(err => showError(`Javascript Error: ${err.message}<br>This usually means there's a typo in your chart specification. See the javascript console for the full traceback.`));
+    }
+
+    if(typeof define === "function" && define.amd) {
+      requirejs.config({paths});
+      require(["vega-embed"], displayChart, err => showError(`Error loading script: ${err.message}`));
+    } else if (typeof vegaEmbed === "function") {
+      displayChart(vegaEmbed);
+    } else {
+      loadScript("vega")
+        .then(() => loadScript("vega-lite"))
+        .then(() => loadScript("vega-embed"))
+        .catch(showError)
+        .then(() => displayChart(vegaEmbed));
+    }
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-feda252b0ba9b35d154d1f54de5135c7"}, "mark": "bar", "encoding": {"color": {"type": "nominal", "field": "\u901a\u5831\u4f86\u6e90"}, "x": {"type": "temporal", "field": "\u65e5\u671f"}, "y": {"type": "quantitative", "field": "\u901a\u5831\u6578"}}, "width": 700, "$schema": "https://vega.github.io/schema/vega-lite/v4.8.1.json", "datasets": {"data-feda252b0ba9b35d154d1f54de5135c7": [{"\u65e5\u671f": "2020-01-16", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-17", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-18", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-19", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-20", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-21", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-22", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-23", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-24", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-25", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-26", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-27", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-28", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-29", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-30", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-31", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-01", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-02", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-03", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-04", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-05", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-06", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-07", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-08", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-09", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-10", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-11", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-12", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-13", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-14", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-15", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-16", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 6}, {"\u65e5\u671f": "2020-02-17", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 615}, {"\u65e5\u671f": "2020-02-18", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 726}, {"\u65e5\u671f": "2020-02-19", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 605}, {"\u65e5\u671f": "2020-02-20", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 722}, {"\u65e5\u671f": "2020-02-21", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 653}, {"\u65e5\u671f": "2020-02-22", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 381}, {"\u65e5\u671f": "2020-02-23", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 283}, {"\u65e5\u671f": "2020-02-24", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 651}, {"\u65e5\u671f": "2020-02-25", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 564}, {"\u65e5\u671f": "2020-02-26", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 485}, {"\u65e5\u671f": "2020-02-27", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 487}, {"\u65e5\u671f": "2020-02-28", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 346}, {"\u65e5\u671f": "2020-02-29", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 414}, {"\u65e5\u671f": "2020-03-01", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 327}, {"\u65e5\u671f": "2020-03-02", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 436}, {"\u65e5\u671f": "2020-03-03", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 358}, {"\u65e5\u671f": "2020-03-04", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 348}, {"\u65e5\u671f": "2020-03-05", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 214}, {"\u65e5\u671f": "2020-03-06", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 282}, {"\u65e5\u671f": "2020-03-07", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 232}, {"\u65e5\u671f": "2020-03-08", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 247}, {"\u65e5\u671f": "2020-03-09", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 379}, {"\u65e5\u671f": "2020-03-10", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 248}, {"\u65e5\u671f": "2020-03-11", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 364}, {"\u65e5\u671f": "2020-03-12", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 614}, {"\u65e5\u671f": "2020-03-13", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 345}, {"\u65e5\u671f": "2020-03-14", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 302}, {"\u65e5\u671f": "2020-03-15", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 241}, {"\u65e5\u671f": "2020-03-16", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 585}, {"\u65e5\u671f": "2020-03-17", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 696}, {"\u65e5\u671f": "2020-03-18", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 927}, {"\u65e5\u671f": "2020-03-19", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 1010}, {"\u65e5\u671f": "2020-03-20", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 924}, {"\u65e5\u671f": "2020-03-21", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 672}, {"\u65e5\u671f": "2020-03-22", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 541}, {"\u65e5\u671f": "2020-03-23", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 692}, {"\u65e5\u671f": "2020-03-24", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 540}, {"\u65e5\u671f": "2020-03-25", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 575}, {"\u65e5\u671f": "2020-03-26", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 598}, {"\u65e5\u671f": "2020-03-27", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 507}, {"\u65e5\u671f": "2020-03-28", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 307}, {"\u65e5\u671f": "2020-03-29", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 590}, {"\u65e5\u671f": "2020-03-30", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 656}, {"\u65e5\u671f": "2020-03-31", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 553}, {"\u65e5\u671f": "2020-04-01", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 610}, {"\u65e5\u671f": "2020-04-02", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 553}, {"\u65e5\u671f": "2020-04-03", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 584}, {"\u65e5\u671f": "2020-04-04", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 569}, {"\u65e5\u671f": "2020-04-05", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 638}, {"\u65e5\u671f": "2020-04-06", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 1387}, {"\u65e5\u671f": "2020-04-07", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 1350}, {"\u65e5\u671f": "2020-04-08", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 1356}, {"\u65e5\u671f": "2020-04-09", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 1316}, {"\u65e5\u671f": "2020-04-10", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 1324}, {"\u65e5\u671f": "2020-04-11", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 923}, {"\u65e5\u671f": "2020-04-12", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 565}, {"\u65e5\u671f": "2020-04-13", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 1115}, {"\u65e5\u671f": "2020-04-14", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 1022}, {"\u65e5\u671f": "2020-04-15", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 802}, {"\u65e5\u671f": "2020-04-16", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 754}, {"\u65e5\u671f": "2020-04-17", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 712}, {"\u65e5\u671f": "2020-04-18", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 460}, {"\u65e5\u671f": "2020-04-19", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 497}, {"\u65e5\u671f": "2020-04-20", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 1638}, {"\u65e5\u671f": "2020-04-21", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 1212}, {"\u65e5\u671f": "2020-04-22", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 1038}, {"\u65e5\u671f": "2020-04-23", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 890}, {"\u65e5\u671f": "2020-04-24", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 730}, {"\u65e5\u671f": "2020-04-25", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 542}, {"\u65e5\u671f": "2020-04-26", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 424}, {"\u65e5\u671f": "2020-04-27", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 666}, {"\u65e5\u671f": "2020-04-28", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 596}, {"\u65e5\u671f": "2020-04-29", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 413}, {"\u65e5\u671f": "2020-04-30", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-16", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-17", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-18", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-19", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-20", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-21", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-22", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-23", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-24", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-25", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-26", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-27", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-28", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-29", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-30", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-31", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-01", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-02", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 7}, {"\u65e5\u671f": "2020-02-03", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 37}, {"\u65e5\u671f": "2020-02-04", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 27}, {"\u65e5\u671f": "2020-02-05", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 103}, {"\u65e5\u671f": "2020-02-06", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 26}, {"\u65e5\u671f": "2020-02-07", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 136}, {"\u65e5\u671f": "2020-02-08", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 154}, {"\u65e5\u671f": "2020-02-09", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 76}, {"\u65e5\u671f": "2020-02-10", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 111}, {"\u65e5\u671f": "2020-02-11", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 115}, {"\u65e5\u671f": "2020-02-12", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 84}, {"\u65e5\u671f": "2020-02-13", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 78}, {"\u65e5\u671f": "2020-02-14", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 45}, {"\u65e5\u671f": "2020-02-15", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 59}, {"\u65e5\u671f": "2020-02-16", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 76}, {"\u65e5\u671f": "2020-02-17", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 166}, {"\u65e5\u671f": "2020-02-18", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 64}, {"\u65e5\u671f": "2020-02-19", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 60}, {"\u65e5\u671f": "2020-02-20", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 39}, {"\u65e5\u671f": "2020-02-21", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 38}, {"\u65e5\u671f": "2020-02-22", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 30}, {"\u65e5\u671f": "2020-02-23", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 32}, {"\u65e5\u671f": "2020-02-24", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 34}, {"\u65e5\u671f": "2020-02-25", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 33}, {"\u65e5\u671f": "2020-02-26", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 21}, {"\u65e5\u671f": "2020-02-27", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 25}, {"\u65e5\u671f": "2020-02-28", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 14}, {"\u65e5\u671f": "2020-02-29", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 10}, {"\u65e5\u671f": "2020-03-01", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 5}, {"\u65e5\u671f": "2020-03-02", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 2}, {"\u65e5\u671f": "2020-03-03", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-04", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-05", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-06", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-07", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-08", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-09", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-10", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-11", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-12", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-13", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-14", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-15", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-16", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-17", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-18", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-19", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-20", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-21", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-22", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-23", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-24", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-25", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-26", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-27", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-28", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-29", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-30", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-31", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-01", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-02", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-03", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-04", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-05", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-06", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-07", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-08", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-09", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-10", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-11", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-12", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-13", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-14", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-15", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-16", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-17", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-18", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-19", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-20", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-21", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-22", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-23", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-24", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-25", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-26", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-27", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-28", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-29", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-30", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-16", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 4}, {"\u65e5\u671f": "2020-01-17", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-18", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 1}, {"\u65e5\u671f": "2020-01-19", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 1}, {"\u65e5\u671f": "2020-01-20", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 2}, {"\u65e5\u671f": "2020-01-21", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 12}, {"\u65e5\u671f": "2020-01-22", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 44}, {"\u65e5\u671f": "2020-01-23", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 70}, {"\u65e5\u671f": "2020-01-24", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 57}, {"\u65e5\u671f": "2020-01-25", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 91}, {"\u65e5\u671f": "2020-01-26", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 117}, {"\u65e5\u671f": "2020-01-27", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 123}, {"\u65e5\u671f": "2020-01-28", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 95}, {"\u65e5\u671f": "2020-01-29", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 106}, {"\u65e5\u671f": "2020-01-30", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 100}, {"\u65e5\u671f": "2020-01-31", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 93}, {"\u65e5\u671f": "2020-02-01", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 87}, {"\u65e5\u671f": "2020-02-02", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 57}, {"\u65e5\u671f": "2020-02-03", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 94}, {"\u65e5\u671f": "2020-02-04", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 76}, {"\u65e5\u671f": "2020-02-05", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 54}, {"\u65e5\u671f": "2020-02-06", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 51}, {"\u65e5\u671f": "2020-02-07", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 63}, {"\u65e5\u671f": "2020-02-08", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 71}, {"\u65e5\u671f": "2020-02-09", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 52}, {"\u65e5\u671f": "2020-02-10", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 94}, {"\u65e5\u671f": "2020-02-11", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 53}, {"\u65e5\u671f": "2020-02-12", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 44}, {"\u65e5\u671f": "2020-02-13", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 37}, {"\u65e5\u671f": "2020-02-14", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 27}, {"\u65e5\u671f": "2020-02-15", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 30}, {"\u65e5\u671f": "2020-02-16", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 30}, {"\u65e5\u671f": "2020-02-17", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 32}, {"\u65e5\u671f": "2020-02-18", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 42}, {"\u65e5\u671f": "2020-02-19", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 31}, {"\u65e5\u671f": "2020-02-20", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 35}, {"\u65e5\u671f": "2020-02-21", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 23}, {"\u65e5\u671f": "2020-02-22", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 33}, {"\u65e5\u671f": "2020-02-23", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 13}, {"\u65e5\u671f": "2020-02-24", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 13}, {"\u65e5\u671f": "2020-02-25", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 12}, {"\u65e5\u671f": "2020-02-26", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 15}, {"\u65e5\u671f": "2020-02-27", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 8}, {"\u65e5\u671f": "2020-02-28", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 11}, {"\u65e5\u671f": "2020-02-29", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 87}, {"\u65e5\u671f": "2020-03-01", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 98}, {"\u65e5\u671f": "2020-03-02", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 162}, {"\u65e5\u671f": "2020-03-03", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 148}, {"\u65e5\u671f": "2020-03-04", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 137}, {"\u65e5\u671f": "2020-03-05", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 83}, {"\u65e5\u671f": "2020-03-06", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 99}, {"\u65e5\u671f": "2020-03-07", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 75}, {"\u65e5\u671f": "2020-03-08", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 51}, {"\u65e5\u671f": "2020-03-09", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 98}, {"\u65e5\u671f": "2020-03-10", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 84}, {"\u65e5\u671f": "2020-03-11", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 81}, {"\u65e5\u671f": "2020-03-12", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 63}, {"\u65e5\u671f": "2020-03-13", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 94}, {"\u65e5\u671f": "2020-03-14", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 78}, {"\u65e5\u671f": "2020-03-15", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 65}, {"\u65e5\u671f": "2020-03-16", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 144}, {"\u65e5\u671f": "2020-03-17", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 179}, {"\u65e5\u671f": "2020-03-18", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 267}, {"\u65e5\u671f": "2020-03-19", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 350}, {"\u65e5\u671f": "2020-03-20", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 447}, {"\u65e5\u671f": "2020-03-21", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 371}, {"\u65e5\u671f": "2020-03-22", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 266}, {"\u65e5\u671f": "2020-03-23", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 446}, {"\u65e5\u671f": "2020-03-24", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 382}, {"\u65e5\u671f": "2020-03-25", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 363}, {"\u65e5\u671f": "2020-03-26", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 330}, {"\u65e5\u671f": "2020-03-27", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 358}, {"\u65e5\u671f": "2020-03-28", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 220}, {"\u65e5\u671f": "2020-03-29", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 245}, {"\u65e5\u671f": "2020-03-30", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 367}, {"\u65e5\u671f": "2020-03-31", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 371}, {"\u65e5\u671f": "2020-04-01", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 400}, {"\u65e5\u671f": "2020-04-02", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 269}, {"\u65e5\u671f": "2020-04-03", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 296}, {"\u65e5\u671f": "2020-04-04", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 295}, {"\u65e5\u671f": "2020-04-05", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 274}, {"\u65e5\u671f": "2020-04-06", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 427}, {"\u65e5\u671f": "2020-04-07", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 335}, {"\u65e5\u671f": "2020-04-08", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 272}, {"\u65e5\u671f": "2020-04-09", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 260}, {"\u65e5\u671f": "2020-04-10", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 250}, {"\u65e5\u671f": "2020-04-11", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 168}, {"\u65e5\u671f": "2020-04-12", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 99}, {"\u65e5\u671f": "2020-04-13", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 225}, {"\u65e5\u671f": "2020-04-14", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 182}, {"\u65e5\u671f": "2020-04-15", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 150}, {"\u65e5\u671f": "2020-04-16", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 149}, {"\u65e5\u671f": "2020-04-17", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 126}, {"\u65e5\u671f": "2020-04-18", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 97}, {"\u65e5\u671f": "2020-04-19", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 127}, {"\u65e5\u671f": "2020-04-20", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 197}, {"\u65e5\u671f": "2020-04-21", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 159}, {"\u65e5\u671f": "2020-04-22", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 117}, {"\u65e5\u671f": "2020-04-23", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 125}, {"\u65e5\u671f": "2020-04-24", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 97}, {"\u65e5\u671f": "2020-04-25", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 77}, {"\u65e5\u671f": "2020-04-26", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 71}, {"\u65e5\u671f": "2020-04-27", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 76}, {"\u65e5\u671f": "2020-04-28", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 98}, {"\u65e5\u671f": "2020-04-29", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 73}, {"\u65e5\u671f": "2020-04-30", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 0}]}}, {"actions": false, "mode": "vega-lite"});
+</script>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>沒錯，我們剛剛用 Altair 生成了第一個 COVID-19 圖表！透過上圖我們也能清楚地觀察到在今年 2 月中旬後擴大監測的通報數明顯上升，而法定傳染病通報則在 3 月中旬後達到巔峰。這是我們無法從試算表一眼看出的趨勢。</p>
+<p>就算這是你第一次知曉 Altair，我相信搭配註解你會同意其使用方式十分直覺；忽略註解你也可以發現能用非常簡潔的宣告型語法（declarative syntax）來繪製出高品質的圖表：</p>
+<div class="highlight"><pre><span></span><span class="c1"># 去除註解的最簡 Altair 繪圖呼叫方式</span>
+<span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="s2">"日期:T"</span>
+    <span class="n">y</span><span class="o">=</span><span class="s2">"通報數:Q"</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">"通報來源:N"</span>
+<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>沒錯，用 Altair 做資料視覺化就是那麼地樸實無華，簡單到可能有些資料科學家都不想跟你分享這個強大工具，以免失去工作(笑</p>
+<p>我們之前在<a href="https://leemeng.tw/data-visualization-from-matplotlib-to-ggplot2.html">淺談資料視覺化以及 ggplot2 實踐</a>就已經說過：</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<blockquote>
+<p>quote:資料視覺化是將數據映射到視覺變數，進而有效且有意義地呈現數據的真實面貌。</p>
+</blockquote>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>透過 Altair 直覺的宣告型語法，我們可以專心思考如何用最有效的視覺變數來呈現數據，而不是將寶貴的精力花在微調樣式上面。有趣的是，Altair 的核心思想<a href="https://leemeng.tw/why-you-need-to-learn-sql-as-a-data-scientist.html">跟我們之前聊過用 SQL 抽取數據的精神</a>是完全一致的：</p>
+<ul>
+<li>Altair: 告訴程式你要畫什麼圖表，而不是如何畫</li>
+<li>SQL：告訴程式你要拿什麼數據，而不是如何拿</li>
+</ul>
+<p>兩者都可以讓我們專注在最重要的目的（what），而不是手法（how）。</p>
+<p>另外注意我們用 <code>日期:T</code> 來告訴 Altair <code>日期</code> 這欄位的數據類型為時間（<strong>T</strong>ime），且因為我們已經事先把代表日期的字串轉成通用的 <code>YYYY-MM-DD</code> 格式， Altair 在繪圖時能夠自動解析日期並呈現如上圖 x 軸的美麗結果（你可以拉回去看看）。其他數據類型都很直覺，這邊就不再一一贅述。</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<blockquote>
+<p>img:intro/altair_encoding_data_type.jpg|desc:Altair 定義的數據類型|url:<a href="https://altair-viz.github.io/user_guide/encoding.html#encoding-data-types%7Csource:Altair">https://altair-viz.github.io/user_guide/encoding.html#encoding-data-types|source:Altair</a> 官方說明文件|dark</p>
+</blockquote>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>你已經看到要用 Altair 繪製基本的圖表有多麽地簡單。但 Altair 更厲害的地方在於你可以輕易地客製化原來的圖表，比方說改變 x 軸渲染的日期格式、添增提示框等新的互動效果：</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">chart_title</span> <span class="o">=</span> <span class="s2">"COVID-19（武漢肺炎）監測趨勢圖 - 依通報來源"</span>
+<span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">chart_title</span><span class="p">)</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span>\
+<span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'日期:T'</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">"通報日"</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Axis</span><span class="p">(</span>
+        <span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="c1"># 去除縱軸的格線</span>
+        <span class="nb">format</span><span class="o">=</span><span class="s2">"%m/</span><span class="si">%d</span><span class="s2">"</span><span class="p">,</span>  <span class="c1"># 自定義日期格式</span>
+    <span class="p">)),</span>
+    <span class="n">y</span><span class="o">=</span><span class="s2">"通報數:Q"</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="s1">'通報來源:O'</span><span class="p">,</span>  <span class="c1"># 將通報來源視為有序類別</span>
+    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s1">'日期:T'</span><span class="p">,</span> <span class="s1">'通報來源'</span><span class="p">,</span> <span class="s1">'通報數'</span><span class="p">]</span>  <span class="c1"># 加上提示框</span>
+<span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">700</span>
+<span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+
+<div id="altair-viz-4b2f19348bb0406bbdc738f2acc759f2"></div>
+<script type="text/javascript">
+  (function(spec, embedOpt){
+    let outputDiv = document.currentScript.previousElementSibling;
+    if (outputDiv.id !== "altair-viz-4b2f19348bb0406bbdc738f2acc759f2") {
+      outputDiv = document.getElementById("altair-viz-4b2f19348bb0406bbdc738f2acc759f2");
+    }
+    const paths = {
+      "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
+      "vega-lib": "https://cdn.jsdelivr.net/npm//vega-lib?noext",
+      "vega-lite": "https://cdn.jsdelivr.net/npm//vega-lite@4.8.1?noext",
+      "vega-embed": "https://cdn.jsdelivr.net/npm//vega-embed@6?noext",
+    };
+
+    function loadScript(lib) {
+      return new Promise(function(resolve, reject) {
+        var s = document.createElement('script');
+        s.src = paths[lib];
+        s.async = true;
+        s.onload = () => resolve(paths[lib]);
+        s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
+        document.getElementsByTagName("head")[0].appendChild(s);
+      });
+    }
+
+    function showError(err) {
+      outputDiv.innerHTML = `<div class="error" style="color:red;">${err}</div>`;
+      throw err;
+    }
+
+    function displayChart(vegaEmbed) {
+      vegaEmbed(outputDiv, spec, embedOpt)
+        .catch(err => showError(`Javascript Error: ${err.message}<br>This usually means there's a typo in your chart specification. See the javascript console for the full traceback.`));
+    }
+
+    if(typeof define === "function" && define.amd) {
+      requirejs.config({paths});
+      require(["vega-embed"], displayChart, err => showError(`Error loading script: ${err.message}`));
+    } else if (typeof vegaEmbed === "function") {
+      displayChart(vegaEmbed);
+    } else {
+      loadScript("vega")
+        .then(() => loadScript("vega-lite"))
+        .then(() => loadScript("vega-embed"))
+        .catch(showError)
+        .then(() => displayChart(vegaEmbed));
+    }
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-feda252b0ba9b35d154d1f54de5135c7"}, "mark": "bar", "encoding": {"color": {"type": "ordinal", "field": "\u901a\u5831\u4f86\u6e90"}, "tooltip": [{"type": "temporal", "field": "\u65e5\u671f"}, {"type": "nominal", "field": "\u901a\u5831\u4f86\u6e90"}, {"type": "quantitative", "field": "\u901a\u5831\u6578"}], "x": {"type": "temporal", "axis": {"format": "%m/%d", "grid": false}, "field": "\u65e5\u671f", "title": "\u901a\u5831\u65e5"}, "y": {"type": "quantitative", "field": "\u901a\u5831\u6578"}}, "title": "COVID-19\uff08\u6b66\u6f22\u80ba\u708e\uff09\u76e3\u6e2c\u8da8\u52e2\u5716 - \u4f9d\u901a\u5831\u4f86\u6e90", "width": 700, "$schema": "https://vega.github.io/schema/vega-lite/v4.8.1.json", "datasets": {"data-feda252b0ba9b35d154d1f54de5135c7": [{"\u65e5\u671f": "2020-01-16", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-17", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-18", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-19", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-20", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-21", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-22", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-23", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-24", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-25", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-26", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-27", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-28", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-29", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-30", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-31", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-01", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-02", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-03", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-04", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-05", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-06", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-07", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-08", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-09", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-10", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-11", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-12", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-13", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-14", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-15", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-16", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 6}, {"\u65e5\u671f": "2020-02-17", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 615}, {"\u65e5\u671f": "2020-02-18", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 726}, {"\u65e5\u671f": "2020-02-19", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 605}, {"\u65e5\u671f": "2020-02-20", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 722}, {"\u65e5\u671f": "2020-02-21", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 653}, {"\u65e5\u671f": "2020-02-22", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 381}, {"\u65e5\u671f": "2020-02-23", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 283}, {"\u65e5\u671f": "2020-02-24", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 651}, {"\u65e5\u671f": "2020-02-25", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 564}, {"\u65e5\u671f": "2020-02-26", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 485}, {"\u65e5\u671f": "2020-02-27", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 487}, {"\u65e5\u671f": "2020-02-28", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 346}, {"\u65e5\u671f": "2020-02-29", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 414}, {"\u65e5\u671f": "2020-03-01", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 327}, {"\u65e5\u671f": "2020-03-02", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 436}, {"\u65e5\u671f": "2020-03-03", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 358}, {"\u65e5\u671f": "2020-03-04", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 348}, {"\u65e5\u671f": "2020-03-05", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 214}, {"\u65e5\u671f": "2020-03-06", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 282}, {"\u65e5\u671f": "2020-03-07", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 232}, {"\u65e5\u671f": "2020-03-08", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 247}, {"\u65e5\u671f": "2020-03-09", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 379}, {"\u65e5\u671f": "2020-03-10", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 248}, {"\u65e5\u671f": "2020-03-11", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 364}, {"\u65e5\u671f": "2020-03-12", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 614}, {"\u65e5\u671f": "2020-03-13", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 345}, {"\u65e5\u671f": "2020-03-14", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 302}, {"\u65e5\u671f": "2020-03-15", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 241}, {"\u65e5\u671f": "2020-03-16", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 585}, {"\u65e5\u671f": "2020-03-17", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 696}, {"\u65e5\u671f": "2020-03-18", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 927}, {"\u65e5\u671f": "2020-03-19", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 1010}, {"\u65e5\u671f": "2020-03-20", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 924}, {"\u65e5\u671f": "2020-03-21", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 672}, {"\u65e5\u671f": "2020-03-22", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 541}, {"\u65e5\u671f": "2020-03-23", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 692}, {"\u65e5\u671f": "2020-03-24", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 540}, {"\u65e5\u671f": "2020-03-25", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 575}, {"\u65e5\u671f": "2020-03-26", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 598}, {"\u65e5\u671f": "2020-03-27", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 507}, {"\u65e5\u671f": "2020-03-28", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 307}, {"\u65e5\u671f": "2020-03-29", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 590}, {"\u65e5\u671f": "2020-03-30", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 656}, {"\u65e5\u671f": "2020-03-31", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 553}, {"\u65e5\u671f": "2020-04-01", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 610}, {"\u65e5\u671f": "2020-04-02", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 553}, {"\u65e5\u671f": "2020-04-03", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 584}, {"\u65e5\u671f": "2020-04-04", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 569}, {"\u65e5\u671f": "2020-04-05", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 638}, {"\u65e5\u671f": "2020-04-06", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 1387}, {"\u65e5\u671f": "2020-04-07", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 1350}, {"\u65e5\u671f": "2020-04-08", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 1356}, {"\u65e5\u671f": "2020-04-09", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 1316}, {"\u65e5\u671f": "2020-04-10", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 1324}, {"\u65e5\u671f": "2020-04-11", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 923}, {"\u65e5\u671f": "2020-04-12", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 565}, {"\u65e5\u671f": "2020-04-13", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 1115}, {"\u65e5\u671f": "2020-04-14", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 1022}, {"\u65e5\u671f": "2020-04-15", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 802}, {"\u65e5\u671f": "2020-04-16", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 754}, {"\u65e5\u671f": "2020-04-17", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 712}, {"\u65e5\u671f": "2020-04-18", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 460}, {"\u65e5\u671f": "2020-04-19", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 497}, {"\u65e5\u671f": "2020-04-20", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 1638}, {"\u65e5\u671f": "2020-04-21", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 1212}, {"\u65e5\u671f": "2020-04-22", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 1038}, {"\u65e5\u671f": "2020-04-23", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 890}, {"\u65e5\u671f": "2020-04-24", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 730}, {"\u65e5\u671f": "2020-04-25", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 542}, {"\u65e5\u671f": "2020-04-26", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 424}, {"\u65e5\u671f": "2020-04-27", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 666}, {"\u65e5\u671f": "2020-04-28", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 596}, {"\u65e5\u671f": "2020-04-29", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 413}, {"\u65e5\u671f": "2020-04-30", "\u901a\u5831\u4f86\u6e90": "\u64f4\u5927\u76e3\u6e2c\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-16", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-17", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-18", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-19", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-20", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-21", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-22", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-23", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-24", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-25", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-26", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-27", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-28", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-29", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-30", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-31", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-01", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-02-02", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 7}, {"\u65e5\u671f": "2020-02-03", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 37}, {"\u65e5\u671f": "2020-02-04", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 27}, {"\u65e5\u671f": "2020-02-05", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 103}, {"\u65e5\u671f": "2020-02-06", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 26}, {"\u65e5\u671f": "2020-02-07", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 136}, {"\u65e5\u671f": "2020-02-08", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 154}, {"\u65e5\u671f": "2020-02-09", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 76}, {"\u65e5\u671f": "2020-02-10", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 111}, {"\u65e5\u671f": "2020-02-11", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 115}, {"\u65e5\u671f": "2020-02-12", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 84}, {"\u65e5\u671f": "2020-02-13", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 78}, {"\u65e5\u671f": "2020-02-14", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 45}, {"\u65e5\u671f": "2020-02-15", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 59}, {"\u65e5\u671f": "2020-02-16", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 76}, {"\u65e5\u671f": "2020-02-17", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 166}, {"\u65e5\u671f": "2020-02-18", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 64}, {"\u65e5\u671f": "2020-02-19", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 60}, {"\u65e5\u671f": "2020-02-20", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 39}, {"\u65e5\u671f": "2020-02-21", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 38}, {"\u65e5\u671f": "2020-02-22", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 30}, {"\u65e5\u671f": "2020-02-23", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 32}, {"\u65e5\u671f": "2020-02-24", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 34}, {"\u65e5\u671f": "2020-02-25", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 33}, {"\u65e5\u671f": "2020-02-26", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 21}, {"\u65e5\u671f": "2020-02-27", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 25}, {"\u65e5\u671f": "2020-02-28", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 14}, {"\u65e5\u671f": "2020-02-29", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 10}, {"\u65e5\u671f": "2020-03-01", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 5}, {"\u65e5\u671f": "2020-03-02", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 2}, {"\u65e5\u671f": "2020-03-03", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-04", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-05", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-06", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-07", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-08", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-09", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-10", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-11", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-12", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-13", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-14", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-15", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-16", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-17", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-18", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-19", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-20", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-21", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-22", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-23", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-24", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-25", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-26", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-27", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-28", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-29", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-30", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-03-31", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-01", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-02", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-03", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-04", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-05", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-06", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-07", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-08", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-09", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-10", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-11", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-12", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-13", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-14", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-15", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-16", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-17", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-18", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-19", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-20", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-21", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-22", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-23", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-24", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-25", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-26", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-27", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-28", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-29", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-04-30", "\u901a\u5831\u4f86\u6e90": "\u5c45\u5bb6\u6aa2\u9a57\u9001\u9a57", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-16", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 4}, {"\u65e5\u671f": "2020-01-17", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 0}, {"\u65e5\u671f": "2020-01-18", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 1}, {"\u65e5\u671f": "2020-01-19", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 1}, {"\u65e5\u671f": "2020-01-20", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 2}, {"\u65e5\u671f": "2020-01-21", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 12}, {"\u65e5\u671f": "2020-01-22", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 44}, {"\u65e5\u671f": "2020-01-23", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 70}, {"\u65e5\u671f": "2020-01-24", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 57}, {"\u65e5\u671f": "2020-01-25", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 91}, {"\u65e5\u671f": "2020-01-26", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 117}, {"\u65e5\u671f": "2020-01-27", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 123}, {"\u65e5\u671f": "2020-01-28", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 95}, {"\u65e5\u671f": "2020-01-29", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 106}, {"\u65e5\u671f": "2020-01-30", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 100}, {"\u65e5\u671f": "2020-01-31", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 93}, {"\u65e5\u671f": "2020-02-01", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 87}, {"\u65e5\u671f": "2020-02-02", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 57}, {"\u65e5\u671f": "2020-02-03", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 94}, {"\u65e5\u671f": "2020-02-04", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 76}, {"\u65e5\u671f": "2020-02-05", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 54}, {"\u65e5\u671f": "2020-02-06", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 51}, {"\u65e5\u671f": "2020-02-07", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 63}, {"\u65e5\u671f": "2020-02-08", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 71}, {"\u65e5\u671f": "2020-02-09", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 52}, {"\u65e5\u671f": "2020-02-10", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 94}, {"\u65e5\u671f": "2020-02-11", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 53}, {"\u65e5\u671f": "2020-02-12", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 44}, {"\u65e5\u671f": "2020-02-13", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 37}, {"\u65e5\u671f": "2020-02-14", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 27}, {"\u65e5\u671f": "2020-02-15", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 30}, {"\u65e5\u671f": "2020-02-16", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 30}, {"\u65e5\u671f": "2020-02-17", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 32}, {"\u65e5\u671f": "2020-02-18", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 42}, {"\u65e5\u671f": "2020-02-19", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 31}, {"\u65e5\u671f": "2020-02-20", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 35}, {"\u65e5\u671f": "2020-02-21", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 23}, {"\u65e5\u671f": "2020-02-22", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 33}, {"\u65e5\u671f": "2020-02-23", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 13}, {"\u65e5\u671f": "2020-02-24", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 13}, {"\u65e5\u671f": "2020-02-25", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 12}, {"\u65e5\u671f": "2020-02-26", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 15}, {"\u65e5\u671f": "2020-02-27", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 8}, {"\u65e5\u671f": "2020-02-28", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 11}, {"\u65e5\u671f": "2020-02-29", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 87}, {"\u65e5\u671f": "2020-03-01", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 98}, {"\u65e5\u671f": "2020-03-02", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 162}, {"\u65e5\u671f": "2020-03-03", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 148}, {"\u65e5\u671f": "2020-03-04", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 137}, {"\u65e5\u671f": "2020-03-05", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 83}, {"\u65e5\u671f": "2020-03-06", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 99}, {"\u65e5\u671f": "2020-03-07", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 75}, {"\u65e5\u671f": "2020-03-08", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 51}, {"\u65e5\u671f": "2020-03-09", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 98}, {"\u65e5\u671f": "2020-03-10", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 84}, {"\u65e5\u671f": "2020-03-11", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 81}, {"\u65e5\u671f": "2020-03-12", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 63}, {"\u65e5\u671f": "2020-03-13", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 94}, {"\u65e5\u671f": "2020-03-14", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 78}, {"\u65e5\u671f": "2020-03-15", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 65}, {"\u65e5\u671f": "2020-03-16", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 144}, {"\u65e5\u671f": "2020-03-17", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 179}, {"\u65e5\u671f": "2020-03-18", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 267}, {"\u65e5\u671f": "2020-03-19", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 350}, {"\u65e5\u671f": "2020-03-20", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 447}, {"\u65e5\u671f": "2020-03-21", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 371}, {"\u65e5\u671f": "2020-03-22", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 266}, {"\u65e5\u671f": "2020-03-23", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 446}, {"\u65e5\u671f": "2020-03-24", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 382}, {"\u65e5\u671f": "2020-03-25", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 363}, {"\u65e5\u671f": "2020-03-26", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 330}, {"\u65e5\u671f": "2020-03-27", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 358}, {"\u65e5\u671f": "2020-03-28", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 220}, {"\u65e5\u671f": "2020-03-29", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 245}, {"\u65e5\u671f": "2020-03-30", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 367}, {"\u65e5\u671f": "2020-03-31", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 371}, {"\u65e5\u671f": "2020-04-01", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 400}, {"\u65e5\u671f": "2020-04-02", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 269}, {"\u65e5\u671f": "2020-04-03", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 296}, {"\u65e5\u671f": "2020-04-04", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 295}, {"\u65e5\u671f": "2020-04-05", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 274}, {"\u65e5\u671f": "2020-04-06", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 427}, {"\u65e5\u671f": "2020-04-07", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 335}, {"\u65e5\u671f": "2020-04-08", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 272}, {"\u65e5\u671f": "2020-04-09", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 260}, {"\u65e5\u671f": "2020-04-10", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 250}, {"\u65e5\u671f": "2020-04-11", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 168}, {"\u65e5\u671f": "2020-04-12", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 99}, {"\u65e5\u671f": "2020-04-13", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 225}, {"\u65e5\u671f": "2020-04-14", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 182}, {"\u65e5\u671f": "2020-04-15", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 150}, {"\u65e5\u671f": "2020-04-16", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 149}, {"\u65e5\u671f": "2020-04-17", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 126}, {"\u65e5\u671f": "2020-04-18", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 97}, {"\u65e5\u671f": "2020-04-19", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 127}, {"\u65e5\u671f": "2020-04-20", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 197}, {"\u65e5\u671f": "2020-04-21", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 159}, {"\u65e5\u671f": "2020-04-22", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 117}, {"\u65e5\u671f": "2020-04-23", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 125}, {"\u65e5\u671f": "2020-04-24", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 97}, {"\u65e5\u671f": "2020-04-25", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 77}, {"\u65e5\u671f": "2020-04-26", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 71}, {"\u65e5\u671f": "2020-04-27", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 76}, {"\u65e5\u671f": "2020-04-28", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 98}, {"\u65e5\u671f": "2020-04-29", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 73}, {"\u65e5\u671f": "2020-04-30", "\u901a\u5831\u4f86\u6e90": "\u6cd5\u5b9a\u50b3\u67d3\u75c5\u901a\u5831", "\u901a\u5831\u6578": 0}]}}, {"actions": false, "mode": "vega-lite"});
+</script>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>至此，我們完整地重現了疾管署首頁所呈現的 COVID-19 監測趨勢圖。透過添加 <code>tooltip</code> 參數，你現在還可以將滑鼠移動至圖上查看各個通報來源的實際數值；這次我們則將通報來源視為有序變數（ordinal variable），讓 Altair 自動套用相同色系的漸層效果，強調檢測能量分別在 2 月以及 3 月中旬有強化的趨勢。</p>
+<p>進度 50 %。接著讓我們重現疾管署公布的境內外確診人數趨勢：</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<blockquote>
+<p>img:intro/taiwan-cnc-numbers.jpg|desc:現在關注左圖：依據境內外做區別的每日確診人數|dark</p>
+</blockquote>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>左圖依照發病日期展示了台灣每天境內外的確診人數趨勢。要重現這張趨勢圖，我們得先想辦法拿到相對應的境內外確診數據。這次我們將存取公開試算表中的<a href="https://docs.google.com/spreadsheets/d/1Kp5IC5IEI2ffaOSZY1daYoi2u50bjUHJW-IgfHoEq8o/edit#gid=0">臺灣武漢肺炎病例</a>工作表：</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">cases</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">GOOGLE_SHEET_URL</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="s2">"1Kp5IC5IEI2ffaOSZY1daYoi2u50bjUHJW-IgfHoEq8o"</span><span class="p">,</span>
+        <span class="mi">0</span>  <span class="c1"># `臺灣武漢肺炎病例` 工作表的 gid</span>
+    <span class="p">))</span>
+    <span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="p">[</span><span class="s1">'出現症狀日期'</span><span class="p">,</span> <span class="s1">'案例'</span><span class="p">,</span> <span class="s1">'來源'</span><span class="p">,</span> <span class="s1">'性別'</span><span class="p">,</span> <span class="s1">'年齡'</span><span class="p">]]</span>
+<span class="p">)</span>
+
+<span class="c1"># 這邊忽略沒有記載出現症狀日期的案例</span>
+<span class="n">cases</span> <span class="o">=</span> <span class="n">cases</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span><span class="n">cases</span><span class="p">[</span><span class="s1">'出現症狀日期'</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()]</span>
+<span class="n">cases</span> <span class="o">=</span> <span class="n">cases</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">cases</span><span class="p">[</span><span class="s1">'出現症狀日期'</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="ow">not</span> <span class="s1">'x'</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)]</span>
+
+<span class="c1"># 處理時間欄位的字串讓 Altair 等等可以正確解析日期</span>
+<span class="n">cases</span><span class="p">[</span><span class="s1">'出現症狀日期'</span><span class="p">]</span> <span class="o">=</span> <span class="n">cases</span><span class="p">[</span><span class="s1">'出現症狀日期'</span><span class="p">]</span>\
+    <span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">'-'</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">'2020'</span><span class="p">,</span> <span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)]))</span>
+
+<span class="n">cases</span><span class="o">.</span><span class="n">tail</span><span class="p">()</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>出現症狀日期</th>
+      <th>案例</th>
+      <th>來源</th>
+      <th>性別</th>
+      <th>年齡</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>423</th>
+      <td>2020-4-5</td>
+      <td>#424</td>
+      <td>敦睦\n遠訓</td>
+      <td>女</td>
+      <td>3X</td>
+    </tr>
+    <tr>
+      <th>424</th>
+      <td>2020-3-23</td>
+      <td>#425</td>
+      <td>敦睦\n遠訓</td>
+      <td>男</td>
+      <td>2X</td>
+    </tr>
+    <tr>
+      <th>425</th>
+      <td>2020-3-23</td>
+      <td>#426</td>
+      <td>敦睦\n遠訓</td>
+      <td>男</td>
+      <td>2X</td>
+    </tr>
+    <tr>
+      <th>426</th>
+      <td>2020-4-19</td>
+      <td>#427</td>
+      <td>敦睦\n遠訓</td>
+      <td>男</td>
+      <td>2X</td>
+    </tr>
+    <tr>
+      <th>427</th>
+      <td>2020-4-22</td>
+      <td>#428</td>
+      <td>敦睦\n遠訓</td>
+      <td>男</td>
+      <td>3X</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>很明顯地，<code>cases</code> 裡的每一列都代表著一個特定的台灣確診案例。而因為我們想要了解的是每一天每個通報來源的案例總數，還得使用 pandas 的 <code>groupby</code> 函式將 <code>cases</code> 依據出現症狀日期 &amp; 來源分組並分別加總案例數：</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">cases</span>
+    <span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">'出現症狀日期'</span><span class="p">,</span> <span class="s1">'來源'</span><span class="p">])[</span><span class="s1">'案例'</span><span class="p">]</span>
+    <span class="o">.</span><span class="n">count</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="p">)</span>
+<span class="n">data</span><span class="o">.</span><span class="n">tail</span><span class="p">()</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>出現症狀日期</th>
+      <th>來源</th>
+      <th>案例</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>85</th>
+      <td>2020-4-4</td>
+      <td>境外</td>
+      <td>6</td>
+    </tr>
+    <tr>
+      <th>86</th>
+      <td>2020-4-4</td>
+      <td>本土</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>87</th>
+      <td>2020-4-5</td>
+      <td>境外</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>88</th>
+      <td>2020-4-5</td>
+      <td>敦睦\n遠訓</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>89</th>
+      <td>2020-4-6</td>
+      <td>境外</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>就跟前面通報來源的例子相同，現在 <code>data</code> 已經是我們想要的 tidy 格式，因此可以馬上使用 Altair 描繪趨勢圖：</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">title</span> <span class="o">=</span> <span class="s2">"嚴重特殊性傳染性肺炎確診個案趨勢圖 - 依發病日"</span>
+<span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">)</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span>\
+<span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'出現症狀日期:T'</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">"發病日"</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Axis</span><span class="p">(</span>
+        <span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="nb">format</span><span class="o">=</span><span class="s2">"%m/</span><span class="si">%d</span><span class="s2">"</span><span class="p">)),</span>
+    <span class="n">y</span><span class="o">=</span><span class="s1">'案例:Q'</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="s1">'來源:N'</span><span class="p">,</span>
+    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s1">'出現症狀日期:T'</span><span class="p">,</span> <span class="s1">'來源'</span><span class="p">,</span> <span class="s1">'案例'</span><span class="p">]</span>
+<span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">700</span>
+<span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+
+<div id="altair-viz-0249bbff0e6949a28a3f18ded16c0865"></div>
+<script type="text/javascript">
+  (function(spec, embedOpt){
+    let outputDiv = document.currentScript.previousElementSibling;
+    if (outputDiv.id !== "altair-viz-0249bbff0e6949a28a3f18ded16c0865") {
+      outputDiv = document.getElementById("altair-viz-0249bbff0e6949a28a3f18ded16c0865");
+    }
+    const paths = {
+      "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
+      "vega-lib": "https://cdn.jsdelivr.net/npm//vega-lib?noext",
+      "vega-lite": "https://cdn.jsdelivr.net/npm//vega-lite@4.8.1?noext",
+      "vega-embed": "https://cdn.jsdelivr.net/npm//vega-embed@6?noext",
+    };
+
+    function loadScript(lib) {
+      return new Promise(function(resolve, reject) {
+        var s = document.createElement('script');
+        s.src = paths[lib];
+        s.async = true;
+        s.onload = () => resolve(paths[lib]);
+        s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
+        document.getElementsByTagName("head")[0].appendChild(s);
+      });
+    }
+
+    function showError(err) {
+      outputDiv.innerHTML = `<div class="error" style="color:red;">${err}</div>`;
+      throw err;
+    }
+
+    function displayChart(vegaEmbed) {
+      vegaEmbed(outputDiv, spec, embedOpt)
+        .catch(err => showError(`Javascript Error: ${err.message}<br>This usually means there's a typo in your chart specification. See the javascript console for the full traceback.`));
+    }
+
+    if(typeof define === "function" && define.amd) {
+      requirejs.config({paths});
+      require(["vega-embed"], displayChart, err => showError(`Error loading script: ${err.message}`));
+    } else if (typeof vegaEmbed === "function") {
+      displayChart(vegaEmbed);
+    } else {
+      loadScript("vega")
+        .then(() => loadScript("vega-lite"))
+        .then(() => loadScript("vega-embed"))
+        .catch(showError)
+        .then(() => displayChart(vegaEmbed));
+    }
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-bb86be674683b7eb44cbcf3cb65c558c"}, "mark": "bar", "encoding": {"color": {"type": "nominal", "field": "\u4f86\u6e90"}, "tooltip": [{"type": "temporal", "field": "\u51fa\u73fe\u75c7\u72c0\u65e5\u671f"}, {"type": "nominal", "field": "\u4f86\u6e90"}, {"type": "quantitative", "field": "\u6848\u4f8b"}], "x": {"type": "temporal", "axis": {"format": "%m/%d", "grid": false}, "field": "\u51fa\u73fe\u75c7\u72c0\u65e5\u671f", "title": "\u767c\u75c5\u65e5"}, "y": {"type": "quantitative", "field": "\u6848\u4f8b"}}, "title": "\u56b4\u91cd\u7279\u6b8a\u6027\u50b3\u67d3\u6027\u80ba\u708e\u78ba\u8a3a\u500b\u6848\u8da8\u52e2\u5716 - \u4f9d\u767c\u75c5\u65e5", "width": 700, "$schema": "https://vega.github.io/schema/vega-lite/v4.8.1.json", "datasets": {"data-bb86be674683b7eb44cbcf3cb65c558c": [{"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-1-11", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-1-20", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-1-21", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-1-22", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-1-22", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-1-23", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-1-25", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 3}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-1-26", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-1-26", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-1-27", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-1-27", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 2}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-1-28", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-1-28", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 2}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-1-29", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-1-31", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-2-1", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 2}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-2-16", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-2-18-25", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 4}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-2-20", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-2-22", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-2-23", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-2-25", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-2-26", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-2-27", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-2-28", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-2-29", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-2-3", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-2-6", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 2}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-1", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 2}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-10", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 6}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-11", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 9}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-12", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 15}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-12", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 2}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-13", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 11}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-14", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 19}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-15", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 15}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-15", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-16", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 22}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-17", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 16}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-17", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 7}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-18", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 23}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-19", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 18}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-2", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-20", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 22}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-20", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 2}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-21", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 9}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-22", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 15}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-22", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-23", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 18}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-23", "\u4f86\u6e90": "\u6566\u7766\n\u9060\u8a13", "\u6848\u4f8b": 2}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-23", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 3}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-24", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 6}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-24", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-25", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 11}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-25", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 2}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-26", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 3}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-26", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 2}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-27", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 6}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-28", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 6}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-29", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-3", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-30", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 6}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-30", "\u4f86\u6e90": "\u6566\u7766\n\u9060\u8a13", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-30", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-31", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 3}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-5", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-6", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 4}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-6", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-7", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 6}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-8", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 8}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-3-9", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 3}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-4-1", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 2}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-4-1", "\u4f86\u6e90": "\u6566\u7766\n\u9060\u8a13", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-4-10", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-4-12", "\u4f86\u6e90": "\u6566\u7766\n\u9060\u8a13", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-4-13", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-4-13", "\u4f86\u6e90": "\u6566\u7766\n\u9060\u8a13", "\u6848\u4f8b": 2}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-4-14", "\u4f86\u6e90": "\u6566\u7766\n\u9060\u8a13", "\u6848\u4f8b": 5}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-4-15", "\u4f86\u6e90": "\u6566\u7766\n\u9060\u8a13", "\u6848\u4f8b": 2}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-4-17", "\u4f86\u6e90": "\u6566\u7766\n\u9060\u8a13", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-4-18", "\u4f86\u6e90": "\u6566\u7766\n\u9060\u8a13", "\u6848\u4f8b": 4}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-4-19", "\u4f86\u6e90": "\u6566\u7766\n\u9060\u8a13", "\u6848\u4f8b": 2}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-4-2", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 3}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-4-22", "\u4f86\u6e90": "\u6566\u7766\n\u9060\u8a13", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-4-3", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 2}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-4-4", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 6}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-4-4", "\u4f86\u6e90": "\u672c\u571f", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-4-5", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-4-5", "\u4f86\u6e90": "\u6566\u7766\n\u9060\u8a13", "\u6848\u4f8b": 1}, {"\u51fa\u73fe\u75c7\u72c0\u65e5\u671f": "2020-4-6", "\u4f86\u6e90": "\u5883\u5916", "\u6848\u4f8b": 1}]}}, {"actions": false, "mode": "vega-lite"});
+</script>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>畫出圖後境內外的確診人數趨勢一目了然。儘管今年 3 月起境外確診案例突增，本土感染的案例比例仍舊很低，表示台灣還沒有大規模社區傳播的現象存在。</p>
+<p>另外從發病日來看，今年 3 月中旬的爆發已漸平緩。值得一提的是疾管署並未將<a href="https://www.facebook.com/tsaiingwen/posts/10156651856531065"> 4 月中旬海軍敦睦艦隊官兵的感染事件</a>列在境內或境外，而是另開分類。因此疾管署首頁上的境內外趨勢圖是沒有顯示敦睦類別的。（國內檢驗項目的確診數則有反應上去）</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>好啦！至此我們已經將疾管署網站上跟台灣相關的 COVID-19 疫情圖表完整地重現出來了。現在讓我們做點總結。</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="最大化公開數據的價值：現在輪到你了">
+<a class="anchor" href="#%E6%9C%80%E5%A4%A7%E5%8C%96%E5%85%AC%E9%96%8B%E6%95%B8%E6%93%9A%E7%9A%84%E5%83%B9%E5%80%BC%EF%BC%9A%E7%8F%BE%E5%9C%A8%E8%BC%AA%E5%88%B0%E4%BD%A0%E4%BA%86" aria-hidden="true"><span class="octicon octicon-link"></span></a>最大化公開數據的價值：現在輪到你了<a class="anchor-link" href="#%E6%9C%80%E5%A4%A7%E5%8C%96%E5%85%AC%E9%96%8B%E6%95%B8%E6%93%9A%E7%9A%84%E5%83%B9%E5%80%BC%EF%BC%9A%E7%8F%BE%E5%9C%A8%E8%BC%AA%E5%88%B0%E4%BD%A0%E4%BA%86"> </a>
+</h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<blockquote>
+<p>quote:要讓公開數據發揮最大價值，我們得讓每位公民都能輕鬆存取並理解這些數據。</p>
+</blockquote>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>在這篇文章裡我向你簡單地展示了如何透過 Python （主要使用 <a href="https://pandas.pydata.org/">pandas</a> 以及 <a href="https://altair-viz.github.io/index.html">Altair</a>） 來有效率地存取、處理並視覺化台灣 COVID-19 疫情的公開數據。作者自己雖非流行病學專業也不是公共衛生相關出身，但看到社會上有那麼多各行各業的抗役英雄，便希望也能用自己的方式為這次的抗疫做出點微薄貢獻。希望這篇文章能鼓勵更多人深入了解並分析 COVID-19 疫情，進而為社會帶來新的洞見。</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<blockquote>
+<p>img:intro/left-nav-demo.jpg|desc:使用桌筆電閱讀的讀者可以善用左側導覽功能|dark</p>
+</blockquote>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>我想你現在已經具備能夠探索台灣 COVID-19 疫情數據的基本能力了。我也相信透過讓更多人參與並了解疫情能對我們的社會帶來一些正面的影響。你現在有幾件事情可以做：</p>
+<ul>
+<li>查看廣大鄉民整理的<a href="https://docs.google.com/spreadsheets/d/1Kp5IC5IEI2ffaOSZY1daYoi2u50bjUHJW-IgfHoEq8o/edit#gid=0">台灣疫情 Google 試算表</a>以深入了解疫情</li>
+<li>回到文章開頭或利用左側導覽點擊 Colab 連結，抓取感興趣的數據分析</li>
+<li>分享本文以讓更多人能夠參與研究台灣新冠疫情並最大化公開數據價值</li>
+</ul>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>另外如果你擔心自己對新型冠狀病毒或是傳染病的科普知識不足，我強力推薦先花 1 小時<a href="https://hahow.in/courses/5e8d70a52aa77e6f34d6fded/main">在 hahow 好學校平台上與陳建仁副總統學習防疫的基本知識</a>：</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<blockquote>
+<p>img:intro/hahow-open-course-vice-president.jpg|desc:全民防疫通識課：陳建仁副總統來開講|source:hahow 好學校|url:<a href="https://hahow.in/courses/5e8d70a52aa77e6f34d6fded/main">https://hahow.in/courses/5e8d70a52aa77e6f34d6fded/main</a></p>
+</blockquote>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>好啦，本章節就到此告一段落！</p>
+<p>我們在下一章會利用此章學到的數據處理技巧進一步對台灣 COVID-19 疫情做些新的視覺化與簡單分析。在那之前別忘了隨時做好自主健康管理，有任何回饋、新的視覺化圖表的建議也請讓我知道！我們下次見：）</p>
+
+</div>
+</div>
+</div>
+</div>
+
+
+
+  </div><a class="u-url" href="/fastpages5/%E8%B3%87%E6%96%99%E8%A6%96%E8%A6%BA%E5%8C%96/altair/pandas/2022/05/13/covid-19.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/fastpages5/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="/fastpages5/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/fastpages5/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>An easy to use blogging platform with support for Jupyter Notebooks.</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li><a rel="me" href="https://github.com/fastai" target="_blank" title="fastai"><svg class="svg-icon grey"><use xlink:href="/fastpages5/assets/minima-social-icons.svg#github"></use></svg></a></li><li><a rel="me" href="https://twitter.com/fastdotai" target="_blank" title="fastdotai"><svg class="svg-icon grey"><use xlink:href="/fastpages5/assets/minima-social-icons.svg#twitter"></use></svg></a></li></ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
